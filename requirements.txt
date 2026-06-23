@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+langgraph
+docling
+pymupdf
+python-dotenv
+requests
+cloudinary
+psycopg2-binary

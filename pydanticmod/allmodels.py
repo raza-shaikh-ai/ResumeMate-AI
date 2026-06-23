@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-# Pydantic Models
+
 class Project(BaseModel):
     title: str
     description: str
