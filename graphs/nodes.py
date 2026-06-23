@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 from typing_extensions import TypedDict
 
+from pdfloader.pdf import pdf_to_text
+
 from langgraph.graph import StateGraph, END
 
 from pydanticmod.allmodels import ResumeData
@@ -128,7 +130,7 @@ You MUST return ONLY valid JSON (no markdown, no explanation) with this exact st
   "projects": [
     {
       "title": "Project Name",
-      "description": "Enhanced description with quantifiable impact",
+      "description": ["Actionable bullet point 1 with quantifiable impact", "Actionable bullet point 2"],
       "technologies": "Tech1, Tech2",
       "link": "url or null",
       "date": "date or null"
@@ -220,7 +222,7 @@ Return ONLY valid JSON:
     "soft": ["top soft skills"]
   },
   "experience": [experiences with all major impact-oriented bullet points preserved],
-  "projects": [projects with complete concise descriptions],
+  "projects": [{"title": "Project Name", "description": ["bullet 1", "bullet 2"], "technologies": "...", "link": "...", "date": "..."}],
   "education": [education entries],
   "certifications": [certifications],
   "achievements": ["achievements list"]
@@ -546,7 +548,7 @@ Return ONLY valid JSON matching this exact structure:
 SCORING ALGORITHM (Standard, well-formatted resumes should naturally score 75-95. Do not artificially deflate scores):
 1. Skill & Keyword Matching (30 pts): Does the resume contain hard technical skills, tools, and frameworks contextually integrated into the experience?
 2. Impact & Metrics (30 pts): Are bullet points structured logically (e.g., Action -> Context -> Result)? Reward quantifiable achievements (%, $, time saved).
-3. Formatting & Parseability (20 pts): Is the structure clean and easily digestible by an automated parser?
+3. Formatting & Parseability (20 pts): The input may contain raw LaTeX or Markdown tags. IGNORE these tags. Assume the final compiled PDF has perfect formatting. Score this section purely on logical section hierarchy and bullet structure.
 4. Conciseness & Relevance (20 pts): Is the summary impactful? Is the experience relevant without fluff?
 
 CRITICAL JSON RULE: 
@@ -557,12 +559,27 @@ CRITICAL JSON RULE:
 def ats_scorer_node(state: ResumeState) -> dict:
     print("📊 [ATS Scorer] Scoring resume...")
 
-    latex = state.get("latex_content", "")
+    pdf_bytes = state.get("pdf_bytes", b"")
+    
+    if not pdf_bytes:
+        print("⚠️ [ATS Scorer] No PDF bytes found. Falling back to LaTeX.")
+        resume_content = state.get("latex_content", "")
+    else:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            tmp.write(pdf_bytes)
+            tmp_path = tmp.name
+        try:
+            resume_content = pdf_to_text(tmp_path)
+        except Exception as e:
+            print(f"⚠️ [ATS Scorer] PDF text extraction failed: {e}. Falling back to LaTeX.")
+            resume_content = state.get("latex_content", "")
+        finally:
+            os.unlink(tmp_path)
 
     user_prompt = f"""Score this resume for ATS compatibility. Return ONLY valid JSON.
 
-LATEX RESUME:
-{latex}"""
+RESUME TEXT:
+{resume_content}"""
 
     try:
         feedback = call_llm_json(ATS_SCORER_SYSTEM_PROMPT, user_prompt, max_tokens=2048)
