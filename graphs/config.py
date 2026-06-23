@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 LLM_API_URL: str = os.getenv("LLM_API_URL", "")
 LLM_MODEL_NAME: str = os.getenv("LLM_MODEL_NAME", "")

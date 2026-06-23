@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
+# Reload trigger for gemini-flash-lite-latest
 
 
 import os

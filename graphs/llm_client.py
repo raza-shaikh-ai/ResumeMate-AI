@@ -1,5 +1,6 @@
 import json
 import requests
+import time
 from typing import Optional
 
 from graphs.config import (
@@ -17,8 +18,6 @@ class LLMClientError(Exception):
 
 def _validate_config():
     missing = []
-    if not LLM_API_URL:
-        missing.append("LLM_API_URL")
     if not LLM_MODEL_NAME:
         missing.append("LLM_MODEL_NAME")
     if not LLM_API_KEY:
@@ -37,41 +36,48 @@ def call_llm(
 ) -> str:
     _validate_config()
 
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{LLM_MODEL_NAME}:generateContent?key={LLM_API_KEY}"
+
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {LLM_API_KEY}",
     }
 
     payload = {
-        "model": LLM_MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": user_prompt}]
+            }
         ],
-        "temperature": temperature if temperature is not None else LLM_TEMPERATURE,
-        "max_tokens": max_tokens if max_tokens is not None else LLM_MAX_TOKENS,
+        "systemInstruction": {
+            "parts": [{"text": system_prompt}]
+        },
+        "generationConfig": {
+            "temperature": temperature if temperature is not None else LLM_TEMPERATURE,
+            "maxOutputTokens": max_tokens if max_tokens is not None else LLM_MAX_TOKENS,
+        }
     }
 
     try:
-        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=120)
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
     except requests.exceptions.RequestException as e:
-        raise LLMClientError(f"LLM API request failed: {e}") from e
+        raise LLMClientError(f"Gemini API request failed: {e}") from e
 
     if response.status_code != 200:
         raise LLMClientError(
-            f"LLM API returned HTTP {response.status_code}: {response.text[:500]}"
+            f"Gemini API returned HTTP {response.status_code}: {response.text[:500]}"
         )
 
     try:
         data = response.json()
     except json.JSONDecodeError as e:
-        raise LLMClientError(f"LLM API returned invalid JSON: {e}") from e
+        raise LLMClientError(f"Gemini API returned invalid JSON: {e}") from e
 
     try:
-        content = data["choices"][0]["message"]["content"]
+        content = data["candidates"][0]["content"]["parts"][0]["text"]
     except (KeyError, IndexError) as e:
         raise LLMClientError(
-            f"Unexpected LLM response structure: {json.dumps(data)[:500]}"
+            f"Unexpected Gemini response structure: {json.dumps(data)[:500]}"
         ) from e
 
     return content.strip()
@@ -99,3 +105,4 @@ def call_llm_json(
         raise LLMClientError(
             f"LLM response is not valid JSON.\nRaw:\n{raw[:1000]}\nError: {e}"
         ) from e
+
