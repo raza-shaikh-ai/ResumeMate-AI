@@ -1,0 +1,117 @@
+\DocumentMetadata{
+  lang=en-US,
+  pdfversion=1.7,
+  pdfstandard=ua-1,
+}
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Packages ----------
+\usepackage[a4paper,top=0.4in,bottom=0.25in,left=0.5in,right=0.6in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{xcolor}
+
+% ---------- Formatting ----------
+\setlist[itemize]{noitemsep, topsep=1pt}
+\setlength{\parindent}{0pt}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    pdftitle={Raza Shaikh - Resume},
+    pdfauthor={Raza Shaikh},
+    pdfsubject={AI Engineer Resume}
+}
+
+% ---------- Document ----------
+\begin{document}
+
+% ---------- Header ----------
+\vspace{-20pt}
+\begin{center}
+    {\LARGE \textbf{Raza Shaikh}} \\
+    \vspace{2pt}
+    {\footnotesize Pune, India \,|\, \href{mailto:razavcf@gmail.com}{razavcf@gmail.com} \,|\, +91~84214~72687 \,|\, LinkedIn: \href{https://www.linkedin.com/in/raza-shaikh-ai/}{Raza-Shaikh} \,|\, GitHub: \href{https://github.com/raza-shaikh-ai}{Razashaikh-AI}}
+\end{center}
+
+
+
+
+% ---------- Summary ----------
+\vspace{-18pt}
+\section*{Professional Summary}
+Final-year B.Tech (AI \& Data Science) student specializing in Generative AI, LLM application development, and Python backend engineering. Built and deployed production-grade Retrieval-Augmented Generation (RAG) pipelines, multi-agent orchestration systems, and cloud-native FastAPI backends on Amazon Web Services (AWS). AWS Certified AI Practitioner with hands-on expertise in LangChain, vector databases, Agentic AI, and prompt engineering.
+
+% ---------- Skills ----------
+\vspace{-10pt}
+\section*{Technical Skills}
+\vspace{-2pt}
+
+\textbf{Languages:} Python, SQL \\
+\textbf{AI \& ML:} Generative AI, LLMs, RAG, Agentic AI, Multi-Agent Orchestration, Prompt Engineering,
+LLM Evaluation, Embedding Models, Vector Search, LangChain, LangSmith, Hugging Face, Fine-tuning \\
+\textbf{Backend:} FastAPI, Flask, REST API Development, JWT Authentication \\
+\textbf{Databases:} MySQL, PostgreSQL, ChromaDB, Vector Databases, OpenSearch Service (AWS) \\
+\textbf{Cloud \& DevOps:} AWS (EC2, S3, RDS, Bedrock), Docker, NGINX (Load Balancing), GitHub, CI/CD
+
+% ---------- Projects ----------
+\vspace{-12pt}
+\section*{Projects}
+\vspace{-3pt}
+
+\textbf{Multi-Agent Resume Intelligence Platform} \,|\,
+\href{https://github.com/raza-shaikh-ai/Ai-agent-resume}{GitHub} \,|\,
+\href{https://ai-agent-resume-three.vercel.app/}{Live Demo}
+\hfill \textit{2026} \\
+\textit{Technologies: Python, FastAPI, AWS Bedrock, Multi-Agent Orchestration, Tavily Search, Docker}
+\begin{itemize}
+    \item Built a sequential multi-agent pipeline on AWS Bedrock that parses resumes, runs real-time web research via Tavily Search, and generates ATS-optimized resumes and cover letters -- reducing manual tailoring time by 90\%.
+    \item Designed a backend-first agentic architecture using FastAPI with specialized agents for Job Description (JD) requirement extraction, semantic skill-gap analysis via cosine similarity, and fit score computation.
+    \item Delivered structured outputs (matched skills, missing skills, alignment insights) via a Next.js interface with real-time analysis tracking.
+\end{itemize}
+\vspace{1pt}
+
+\textbf{Multilingual RAG Engine} \,|\,
+\href{https://github.com/raza-shaikh-ai/Rag-systems}{GitHub} \,|\,
+\href{https://rag-systems.vercel.app}{Live Demo} \,|\,
+\href{https://razashaikh9921-main-dev.hf.space/docs}{Backend API}
+\hfill \textit{2025} \\
+\textit{Built for multilingual enterprise knowledge retrieval -- enabling accurate document search and grounded AI responses across 100+ languages.} \\
+\textit{Technologies: Python, FastAPI, LangChain, LangSmith, Chroma Vector Database, BGE-M3 Multilingual Embeddings, BM25, Reciprocal Rank Fusion, OpenRouter API}
+\begin{itemize}
+    \item Designed a RAGAS-based evaluation pipeline achieving \textbf{0.92 faithfulness} and \textbf{0.89 answer relevancy} across a 30-query multilingual benchmark -- integrated LangSmith tracing for end-to-end pipeline observability.
+    \item Built a production RAG engine supporting 100+ languages with hybrid BM25 + vector retrieval and Reciprocal Rank Fusion, improving retrieval precision by \textbf{35\%} over naive vector search.
+    \item Implemented script-aware chunking and BGE-M3 multilingual embeddings with a Chroma vector database, reducing hallucination rate by 40\% on multilingual queries vs baseline.
+\end{itemize}
+\vspace{2pt}
+
+\textbf{Cloud-Native Hostel Management System} \,|\,
+\href{https://github.com/raza-shaikh-ai/hostel-management-CRUD}{GitHub}
+\hfill \textit{2026} \\
+\textit{Technologies: Python, FastAPI, JWT Authentication, REST APIs, AWS EC2, PostgreSQL (Neon Cloud), NGINX}
+\begin{itemize}
+    \item Built a FastAPI backend managing hostel operations (student registration, room allocation, occupancy tracking) with PostgreSQL on Neon Cloud.
+    \item Implemented JWT authentication with role-based access control and containerized deployment on AWS EC2.
+    \item Integrated NGINX load balancing across multiple backend instances, achieving \textbf{44\% lower latency} (104ms to 58ms) and \textbf{doubling throughput from 95 to 191 req/sec} under concurrent load.
+\end{itemize}
+
+% ---------- Education ----------
+\vspace{-14pt}
+\section*{Education}
+\vspace{-5pt}
+\noindent\textbf{Bachelor of Technology -- Artificial Intelligence and Data Science} \hfill \textit{2023 -- 2027} \\
+\textit{Dr. Babasaheb Ambedkar Technological University (DBATU), Solapur, India} \hfill \textit{CGPA: 7.0/10}
+
+% ---------- Certifications ----------
+\vspace{-14pt}
+\section*{Certifications \& Achievements}
+\begin{itemize}
+    \item \textbf{AWS Certified AI Practitioner} [\href{https://www.credly.com/badges/54f5cf90-586c-4237-872c-1870397088a0}{AIF-C01}] \hfill {\small Issued Mar 2026 -- Expires Mar 2029}
+    \item \textbf{1st Runner-Up} -- Orchathon 2K26: Backend architecture, cloud integration, scalable crash analytics (2026)
+    \item \textbf{Certificate of Appreciation} -- Solapur Municipal Corporation, AI-based civic complaint classification project \textit{``Civic Chain''} (2025)
+\end{itemize}
+
+\end{document}

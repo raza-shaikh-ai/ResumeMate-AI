@@ -1,0 +1,127 @@
+{
+  "name": "John Doe",
+  "title": "Senior Software Engineer",
+  "email": "john.doe@example.com",
+  "phone": "+1 (555) 123-4567",
+  "location": "San Francisco, CA",
+  "linkedin_url": "https://linkedin.com/in/johndoe",
+  "github_url": "https://github.com/johndoe",
+  "portfolio_url": "https://johndoe.dev",
+  "summary": "Experienced software engineer with 8+ years in full-stack development, specializing in Python, FastAPI, and cloud-native applications. Passionate about building scalable systems and mentoring junior developers.",
+  "skills": [
+    "Python",
+    "FastAPI",
+    "JavaScript",
+    "React",
+    "AWS",
+    "Docker",
+    "PostgreSQL",
+    "MongoDB",
+    "Git",
+    "CI/CD"
+  ],
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Tech Innovations Inc.",
+      "location": "San Francisco, CA",
+      "start_date": "2020-03-01",
+      "end_date": "Present",
+      "description": [
+        "Led development of microservices architecture serving 1M+ users",
+        "Implemented CI/CD pipeline reducing deployment time by 70%",
+        "Mentored 5 junior developers on best practices and code reviews",
+        "Optimized database queries improving API response time by 40%"
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "StartUp Solutions LLC",
+      "location": "Austin, TX",
+      "start_date": "2017-06-01",
+      "end_date": "2020-02-28",
+      "description": [
+        "Developed RESTful APIs using FastAPI and PostgreSQL",
+        "Built frontend components with React and TypeScript",
+        "Implemented automated testing increasing coverage to 85%",
+        "Collaborated with product team on feature specifications"
+      ]
+    },
+    {
+      "title": "Junior Developer",
+      "company": "WebTech Corp",
+      "location": "Boston, MA",
+      "start_date": "2015-08-01",
+      "end_date": "2017-05-31",
+      "description": [
+        "Assisted in development of e-commerce platform",
+        "Fixed bugs and implemented minor features",
+        "Participated in agile development sprints",
+        "Learned best practices in code review sessions"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Resume Builder API",
+      "description": "A FastAPI-based service for processing resumes with PDF extraction and structured data validation",
+      "technologies": "Python, FastAPI, PyMuPDF, Pydantic, PostgreSQL",
+      "link": "https://github.com/johndoe/resume-builder",
+      "date": "2024-01-15"
+    },
+    {
+      "title": "E-commerce Analytics Dashboard",
+      "description": "Real-time analytics dashboard for tracking sales, customer behavior, and inventory",
+      "technologies": "React, D3.js, Node.js, MongoDB, WebSocket",
+      "link": "https://github.com/johndoe/ecommerce-analytics",
+      "date": "2023-08-20"
+    },
+    {
+      "title": "AI-Powered Chat Assistant",
+      "description": "Chatbot using OpenAI API for customer support with context-aware responses",
+      "technologies": "Python, FastAPI, OpenAI API, Redis, Docker",
+      "link": "https://github.com/johndoe/ai-chat-assistant",
+      "date": "2023-03-10"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Master of Science in Computer Science",
+      "institution": "Stanford University",
+      "location": "Stanford, CA",
+      "graduation_year": "2015",
+      "gpa": "3.8"
+    },
+    {
+      "degree": "Bachelor of Science in Software Engineering",
+      "institution": "MIT",
+      "location": "Cambridge, MA",
+      "graduation_year": "2013",
+      "gpa": "3.9"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect - Professional",
+      "issuer": "Amazon Web Services",
+      "date": "2022-11-15"
+    },
+    {
+      "name": "Google Cloud Professional Data Engineer",
+      "issuer": "Google Cloud",
+      "date": "2021-06-30"
+    },
+    {
+      "name": "Certified Kubernetes Administrator",
+      "issuer": "Cloud Native Computing Foundation",
+      "date": "2020-09-20"
+    }
+  ],
+  "achievements": [
+    "Employee of the Year 2022 at Tech Innovations Inc.",
+    "Published research paper on distributed systems at ACM Conference 2021",
+    "Open source contributor with 500+ GitHub stars across projects",
+    "Speaker at PyCon 2020 on 'Building Scalable APIs with FastAPI'"
+  ],
+  "additional_info": "Available for remote work. Willing to relocate. Open to contract positions. Fluent in English and Spanish. Active open source contributor."
+}
