@@ -290,6 +290,10 @@
 
     <div class="score-upload-area">
       <div class="card score-card">
+        <div class="field" style="margin-bottom: 20px;">
+          <label for="ats-name">Full Name <span class="req">*</span></label>
+          <input type="text" id="ats-name" placeholder="John Doe" required />
+        </div>
         <div class="upload-zone" id="upload-zone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('pdf-upload').click()">
           <div class="upload-icon">📎</div>
           <p class="upload-title">Drop your PDF here</p>

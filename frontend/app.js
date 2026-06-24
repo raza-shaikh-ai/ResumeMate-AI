@@ -401,11 +401,19 @@ function removeFile() {
 
 async function scoreResume() {
   if (!selectedPDFFile) { showToast('⚠️ Please select a PDF file first.'); return; }
+  const nameInput = document.getElementById('ats-name');
+  const candidateName = nameInput ? nameInput.value.trim() : '';
+  if (!candidateName) {
+    showToast('⚠️ Please enter your Full Name first.');
+    if (nameInput) nameInput.focus();
+    return;
+  }
   const btn = document.getElementById('score-btn');
   btn.disabled = true;
   btn.querySelector('.generate-btn-inner').textContent = '⏳ Analyzing…';
   const formData = new FormData();
   formData.append('file', selectedPDFFile);
+  formData.append('candidate_name', candidateName);
   try {
     const response = await fetch(`${API_BASE}/process-pdf`, { method: 'POST', body: formData });
     const result = await response.json();
@@ -458,9 +466,13 @@ function renderLeaderboard(rows) {
     const rankClass = rank <= 3 ? `top-${rank}` : '';
     const displayName = (row.name || 'Anonymous').replace(/_/g, ' ');
     const pillCls = scorePillClass(row.ats_score);
-    const safeUrl  = row.pdf_url ? row.pdf_url.replace(/'/g, "\\'") : '';
+    let pdfUrl = row.pdf_url || '';
+    if (pdfUrl && !pdfUrl.startsWith('http')) {
+      pdfUrl = `${API_BASE}${pdfUrl}`;
+    }
+    const safeUrl = pdfUrl.replace(/'/g, "\\'");
     const safeName = displayName.replace(/'/g, "\\'");
-    const linkHtml = row.pdf_url
+    const linkHtml = pdfUrl
       ? `<button class="view-link" onclick="openPdfModal('${safeUrl}','${safeName}')">View ↗</button>`
       : `<span style="color:var(--text-3);font-size:.78rem">—</span>`;
     return `
@@ -521,18 +533,47 @@ async function openPdfModal(url, name) {
   // Strategy 1: fetch → blob → embed  (works when CORS is open)
   try {
     const resp = await fetch(url, { cache: 'no-store' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) {
+      if (resp.status === 401 || resp.status === 403) {
+        throw new Error("UNAUTHORIZED");
+      }
+      throw new Error(`HTTP ${resp.status}`);
+    }
     const buf  = await resp.arrayBuffer();
     const blob = new Blob([buf], { type: 'application/pdf' });
     _pdfBlobUrl = URL.createObjectURL(blob);
     body.innerHTML = `<embed src="${_pdfBlobUrl}" type="application/pdf" style="width:100%;height:100%;border:none;display:block;">`;
     return;
   } catch (e) {
-    console.warn('[PDF Modal] fetch failed, using direct embed:', e.message);
+    console.warn('[PDF Modal] fetch failed:', e.message);
+    if (e.message === "UNAUTHORIZED" || url.includes("cloudinary.com")) {
+      showCloudinaryFallback(body, url);
+      return;
+    }
   }
 
   // Strategy 2: direct embed  (Cloudinary raw URLs serve correct Content-Type now)
   body.innerHTML = `<embed src="${url}" type="application/pdf" style="width:100%;height:100%;border:none;display:block;">`;
+}
+
+function showCloudinaryFallback(body, url) {
+  body.innerHTML = `
+    <div class="pdf-fallback" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 2.5rem 1.5rem;">
+      <div class="pdf-fallback-icon" style="font-size:3rem; margin-bottom:1rem; animation: pulse 2s infinite;">⚠️</div>
+      <p style="color:var(--text-1);font-size:1.1rem;font-weight:700;margin:0 0 0.5rem 0;font-family:var(--font-display)">
+        Cloudinary PDF Delivery Blocked
+      </p>
+      <p style="color:var(--text-2);font-size:.9rem;margin:0 0 1.5rem 0;max-width:380px;line-height:1.6">
+        This historical resume PDF is hosted on Cloudinary, which restricts raw PDF delivery by default.<br><br>
+        <strong>To fix this preview:</strong> Log in to your Cloudinary Console, navigate to <em>Settings -> Security</em>, scroll to <em>Restricted Media Types</em>, and check the box to <strong>"Allow delivery of PDF and ZIP files"</strong>.
+      </p>
+      <a href="${url}" target="_blank" download
+         style="display:inline-block;padding:12px 28px;border-radius:12px;
+                background:linear-gradient(135deg,var(--purple),#A855F7);color:#fff;
+                font-weight:700;text-decoration:none;font-family:var(--font-display);font-size:.9rem;box-shadow: 0 4px 12px rgba(168,85,247,0.3)">
+        ↗ Open PDF directly
+      </a>
+    </div>`;
 }
 
 /* ── Fallback when all preview strategies fail ─────────────── */

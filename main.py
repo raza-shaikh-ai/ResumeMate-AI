@@ -21,7 +21,21 @@ from pdfloader.pdf import pdf_to_text
 from graphs.nodes import process_resume_with_graph, ATS_SCORER_SYSTEM_PROMPT
 from graphs.llm_client import call_llm_json, LLMClientError
 
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+os.makedirs("static/resumes", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def _run_pipeline(resume_dict: dict) -> dict:
@@ -109,21 +123,25 @@ async def process_resume(
     if resume_dict:
         result = _run_pipeline(resume_dict)
         candidate_name = resume_dict.get("name", "resume").replace(" ", "_").lower()
+        db_name = resume_dict.get("name", "John Doe").strip()
         score = result.get("ats_score", 0)
 
-        # Upload generated PDF to Cloudinary
-        pdf_url = ""
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as gen_temp:
-            gen_temp.write(result["pdf_bytes"])
-            gen_temp_path = gen_temp.name
+        # Save generated PDF locally to serve statically (replaces private/unauthorized Cloudinary urls)
+        local_filename = f"{uuid.uuid4()}.pdf"
+        local_path = os.path.join("static", "resumes", local_filename)
+        with open(local_path, "wb") as f:
+            f.write(result["pdf_bytes"])
+        
+        pdf_url = f"/static/resumes/{local_filename}"
+
+        # Upload to Cloudinary in background/optionally
         try:
-            pdf_url = upload_to_cloudinary(gen_temp_path)
-        finally:
-            os.unlink(gen_temp_path)
+            upload_to_cloudinary(local_path)
+        except Exception as e:
+            print(f"⚠️ Cloudinary fallback upload failed: {e}")
 
         # Save to Neon DB
-        if pdf_url:
-            save_to_leaderboard(candidate_name, score, pdf_url)
+        save_to_leaderboard(db_name, score, pdf_url)
 
         metadata = {
             "success": True,
@@ -149,7 +167,10 @@ async def process_resume(
     return {"pdfdata": pdfdata, "message": "No structured resume data provided. Send JSON in 'data' field."}
 
 @app.post("/process-pdf")
-async def process_pdf(file: UploadFile = File(...)):
+async def process_pdf(
+    file: UploadFile = File(...),
+    candidate_name: Optional[str] = Form(None)
+):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
     
@@ -176,12 +197,24 @@ RESUME TEXT:
         os.unlink(temp_file_path)
         raise HTTPException(status_code=500, detail=f"LLM scoring failed: {str(e)}")
 
-    pdf_url = upload_to_cloudinary(temp_file_path)
+    # Save a copy locally to serve statically
+    local_filename = f"{uuid.uuid4()}.pdf"
+    local_path = os.path.join("static", "resumes", local_filename)
+    with open(local_path, "wb") as f:
+        f.write(content)
+    
+    pdf_url = f"/static/resumes/{local_filename}"
+
+    # Upload to Cloudinary in background/optionally
+    try:
+        upload_to_cloudinary(local_path)
+    except Exception as e:
+        print(f"⚠️ Cloudinary fallback upload failed: {e}")
+        
     os.unlink(temp_file_path)
 
-    candidate_name = file.filename.split('.')[0] if file.filename else "Unknown"
-    if pdf_url:
-        save_to_leaderboard(candidate_name, score, pdf_url)
+    db_name = candidate_name.strip() if (candidate_name and candidate_name.strip()) else (file.filename.split('.')[0] if file.filename else "Unknown")
+    save_to_leaderboard(db_name, score, pdf_url)
 
     return {
         "success": True,
