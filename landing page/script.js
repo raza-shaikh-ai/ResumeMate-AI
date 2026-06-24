@@ -1,5 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    // ── 0. Hamburger / Mobile Menu ────────────────────────────
+    const hamburger = document.getElementById("hamburger");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    function closeMobileMenu() {
+        hamburger.classList.remove("open");
+        mobileMenu.classList.remove("open");
+        hamburger.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+    }
+
+    if (hamburger && mobileMenu) {
+        hamburger.addEventListener("click", () => {
+            const isOpen = mobileMenu.classList.toggle("open");
+            hamburger.classList.toggle("open", isOpen);
+            hamburger.setAttribute("aria-expanded", String(isOpen));
+            document.body.style.overflow = isOpen ? "hidden" : "";
+        });
+
+        // Close menu when any link inside it is clicked
+        mobileMenu.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", closeMobileMenu);
+        });
+
+        // Close on backdrop click (outside menu-links)
+        mobileMenu.addEventListener("click", (e) => {
+            if (e.target === mobileMenu) closeMobileMenu();
+        });
+    }
+
     // ── 1. Sticky Navbar ─────────────────────────────────────
     const navbar = document.getElementById("navbar");
     window.addEventListener("scroll", () => {
