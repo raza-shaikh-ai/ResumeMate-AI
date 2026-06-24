@@ -1040,3 +1040,106 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
 }
 
 
+
+
+/* ===== RESUMEMATE ENTERPRISE V3 ===== */
+:root{
+--bg-base:#f8fafc!important;
+--bg-card:#ffffff!important;
+--text-1:#0f172a!important;
+--text-2:#475569!important;
+--text-3:#94a3b8!important;
+--border:#e2e8f0!important;
+--purple:#4f46e5!important;
+}
+
+body{
+background:#f8fafc!important;
+color:#ffffff!important;
+}
+
+.bg-orbs{display:none!important;}
+
+.navbar{
+background:rgba(255,255,255,.95)!important;
+border-bottom:1px solid #e5e7eb!important;
+backdrop-filter:blur(20px)!important;
+}
+
+.hero{
+max-width:1440px!important;
+margin:24px auto!important;
+padding:100px 70px!important;
+border-radius:32px!important;
+background:linear-gradient(135deg,#0f172a,#1e293b,#4338ca)!important;
+box-shadow:0 25px 70px rgba(15,23,42,.15)!important;
+}
+
+.hero-title{
+font-size:clamp(3rem,6vw,5rem)!important;
+font-weight:800!important;
+}
+
+.card,.result-card,.score-result-card,.processing-panel{
+background:#fff!important;
+border:1px solid #e2e8f0!important;
+border-radius:24px!important;
+box-shadow:0 10px 30px rgba(15,23,42,.05)!important;
+}
+
+.card:hover{
+transform:translateY(-4px);
+transition:.25s;
+}
+
+input,textarea,select{
+background:#f8fafc!important;
+border:1px solid #dbe4f0!important;
+border-radius:14px!important;
+color:#0f172a!important;
+padding:14px 16px!important;
+}
+
+input:focus,textarea:focus{
+border-color:#4f46e5!important;
+box-shadow:0 0 0 5px rgba(79,70,229,.12)!important;
+}
+
+.generate-btn,.download-btn{
+border-radius:18px!important;
+font-weight:700!important;
+}
+
+.generate-btn{
+background:linear-gradient(135deg,#4f46e5,#7c3aed)!important;
+box-shadow:0 20px 40px rgba(79,70,229,.28)!important;
+}
+
+.builder-layout{
+max-width:1440px!important;
+grid-template-columns:1.45fr .85fr!important;
+}
+
+.result-column{
+top:95px!important;
+}
+
+.upload-zone{
+background:#f8fafc!important;
+border:2px dashed #a5b4fc!important;
+}
+
+.leaderboard-card{
+background:#fff!important;
+border-radius:24px!important;
+}
+
+.lb-row:hover{
+background:#f8fafc!important;
+}
+
+@media(max-width:1100px){
+.builder-layout{
+grid-template-columns:1fr!important;
+}
+}
