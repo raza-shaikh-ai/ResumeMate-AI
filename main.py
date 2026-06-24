@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 load_dotenv(override=True)
-# Reload trigger for gemini-flash-lite-latest
 
 
 import os
@@ -54,7 +53,7 @@ def _run_pipeline(resume_dict: dict) -> dict:
 def save_to_leaderboard(name: str, ats_score: int, pdf_url: str):
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
-        print("⚠️ DATABASE_URL not set, skipping Neon DB insert.")
+        print("DATABASE_URL not set, skipping Neon DB insert.")
         return
     try:
         conn = psycopg2.connect(db_url)
@@ -67,28 +66,28 @@ def save_to_leaderboard(name: str, ats_score: int, pdf_url: str):
         conn.commit()
         cur.close()
         conn.close()
-        print(f"✅ Saved {name} to leaderboard.")
+        print(f"Saved {name} to leaderboard.")
     except Exception as e:
-        print(f"❌ Failed to insert into Neon DB: {e}")
+        print(f"Failed to insert into Neon DB: {e}")
 
 def upload_to_cloudinary(file_path: str) -> str:
     if not os.getenv("CLOUDINARY_URL"):
-        print("⚠️ CLOUDINARY_URL not set, skipping Cloudinary upload.")
+        print("CLOUDINARY_URL not set, skipping Cloudinary upload.")
         return ""
     try:
         upload_result = cloudinary.uploader.upload(
             file_path,
-            resource_type="raw",       # "raw" preserves the file as-is with correct Content-Type
-            format="pdf",              # ensure .pdf extension on the URL
+            resource_type="raw",
+            format="pdf",
             type="upload",
             access_mode="public",
             use_filename=True,
             unique_filename=True,
         )
-        print("✅ Uploaded to Cloudinary:", upload_result.get("secure_url"))
+        print("Uploaded to Cloudinary:", upload_result.get("secure_url"))
         return upload_result.get("secure_url", "")
     except Exception as e:
-        print(f"❌ Failed to upload to Cloudinary: {e}")
+        print(f"Failed to upload to Cloudinary: {e}")
         return ""
 
 
@@ -126,7 +125,6 @@ async def process_resume(
         db_name = resume_dict.get("name", "John Doe").strip()
         score = result.get("ats_score", 0)
 
-        # Save generated PDF locally to serve statically (replaces private/unauthorized Cloudinary urls)
         local_filename = f"{uuid.uuid4()}.pdf"
         local_path = os.path.join("static", "resumes", local_filename)
         with open(local_path, "wb") as f:
@@ -134,13 +132,11 @@ async def process_resume(
         
         pdf_url = f"/static/resumes/{local_filename}"
 
-        # Upload to Cloudinary in background/optionally
         try:
             upload_to_cloudinary(local_path)
         except Exception as e:
-            print(f"⚠️ Cloudinary fallback upload failed: {e}")
+            print(f"Cloudinary fallback upload failed: {e}")
 
-        # Save to Neon DB
         save_to_leaderboard(db_name, score, pdf_url)
 
         metadata = {
@@ -197,7 +193,6 @@ RESUME TEXT:
         os.unlink(temp_file_path)
         raise HTTPException(status_code=500, detail=f"LLM scoring failed: {str(e)}")
 
-    # Save a copy locally to serve statically
     local_filename = f"{uuid.uuid4()}.pdf"
     local_path = os.path.join("static", "resumes", local_filename)
     with open(local_path, "wb") as f:
@@ -205,11 +200,10 @@ RESUME TEXT:
     
     pdf_url = f"/static/resumes/{local_filename}"
 
-    # Upload to Cloudinary in background/optionally
     try:
         upload_to_cloudinary(local_path)
     except Exception as e:
-        print(f"⚠️ Cloudinary fallback upload failed: {e}")
+        print(f"Cloudinary fallback upload failed: {e}")
         
     os.unlink(temp_file_path)
 

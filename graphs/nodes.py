@@ -7,29 +7,15 @@ from typing import Any, Dict, List
 from typing_extensions import TypedDict
 
 from pdfloader.pdf import pdf_to_text
-
+from graphs.prompts import ENHANCE_SYSTEM_PROMPT, ATS_OPTIMIZE_SYSTEM_PROMPT, ATS_SCORER_SYSTEM_PROMPT,LATEX_BUILDER_SYSTEM_PROMPT,CONDENSE_SYSTEM_PROMPT
 from langgraph.graph import StateGraph, END
 
-from pydanticmod.allmodels import ResumeData
+from pydanticmod.allmodels import ResumeData,ResumeState
 from graphs.llm_client import call_llm, call_llm_json, LLMClientError
 from graphs.config import MAX_PAGE_RETRIES
 
 
-class ResumeState(TypedDict, total=False):
-    resume_data: dict
-    normalized_data: dict
-    enhanced_resume: dict
-    ats_optimized_data: dict
-    selected_template: str
-    template_content: str
-    latex_content: str
-    pdf_bytes: bytes
-    page_count: int
-    ats_score: int
-    ats_feedback: dict
-    compilation_attempts: int
-    processing_steps: List[str]
-    errors: List[str]
+
 
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "resumetemplates"
@@ -58,7 +44,7 @@ def _serialize_list(items):
 
 
 def normalize_node(state: ResumeState) -> dict:
-    print("🔧 [Normalize] Processing resume data...")
+    print("[Normalize] Processing resume data...")
 
     resume_data = state.get("resume_data")
     if not resume_data:
@@ -91,8 +77,8 @@ def normalize_node(state: ResumeState) -> dict:
     has_experience = bool(normalized["experience"])
     template_name, template_content = _load_template(has_experience)
 
-    print(f"✅ [Normalize] {normalized['name']} — {normalized['title']}")
-    print(f"📄 [Normalize] Template: {template_name}")
+    print(f"[Normalize] {normalized['name']} — {normalized['title']}")
+    print(f"[Normalize] Template: {template_name}")
 
     return {
         **state,
@@ -105,67 +91,8 @@ def normalize_node(state: ResumeState) -> dict:
     }
 
 
-ENHANCE_SYSTEM_PROMPT = """You are an expert resume writer and career coach.
-Your job is to enhance a candidate's resume data to make it more impactful,
-ATS-friendly, and professional.
-
-You MUST return ONLY valid JSON (no markdown, no explanation) with this exact structure:
-{
-  "summary": "enhanced professional summary (2-3 sentences, keyword-rich)",
-  "skills": {
-    "technical": ["skill1", "skill2"],
-    "tools_platforms": ["tool1", "tool2"],
-    "soft_skills": ["skill1", "skill2"]
-  },
-  "experience": [
-    {
-      "title": "Job Title",
-      "company": "Company Name",
-      "location": "City, State",
-      "start_date": "start date",
-      "end_date": "end date",
-      "description": ["STAR-format bullet with metrics", "bullet 2"]
-    }
-  ],
-  "projects": [
-    {
-      "title": "Project Name",
-      "description": ["Actionable bullet point 1 with quantifiable impact", "Actionable bullet point 2"],
-      "technologies": "Tech1, Tech2",
-      "link": "url or null",
-      "date": "date or null"
-    }
-  ],
-  "achievements": ["impact-focused achievement 1", "achievement 2"],
-  "education": [
-    {
-      "degree": "Degree",
-      "institution": "Institution",
-      "location": "Location",
-      "graduation_year": "Year",
-      "gpa": "GPA or null"
-    }
-  ],
-  "certifications": [
-    {
-      "name": "Cert Name",
-      "issuer": "Issuer",
-      "date": "Date or null"
-    }
-  ]
-}
-
-Rules:
-- Rewrite experience bullets using STAR method with quantifiable metrics
-- Enhance project descriptions with measurable impact
-- Categorize skills into technical, tools/platforms, and soft skills
-- Rewrite achievements with strong action verbs
-- Keep education and certifications factual — never fabricate
-- Preserve all original info — enhance language only"""
-
-
 def enhance_resume_node(state: ResumeState) -> dict:
-    print("🚀 [Enhance] Calling LLM to enhance resume...")
+    print("[Enhance] Calling LLM to enhance resume...")
 
     normalized = state.get("normalized_data", {})
 
@@ -175,10 +102,10 @@ CANDIDATE DATA:
 {json.dumps(normalized, indent=2, default=str)}"""
 
     try:
-        enhanced = call_llm_json(ENHANCE_SYSTEM_PROMPT, user_prompt, max_tokens=3000)
+        enhanced = call_llm_json(ENHANCE_SYSTEM_PROMPT, user_prompt, max_tokens=3500)
         state_errors = state.get("errors", [])
     except LLMClientError as e:
-        print(f"⚠️ [Enhance] LLM failed: {e}")
+        print(f"[Enhance] LLM failed: {e}")
         enhanced = {
             "summary": normalized.get("summary", ""),
             "skills": {"technical": normalized.get("skills", []), "tools_platforms": [], "soft_skills": []},
@@ -190,7 +117,7 @@ CANDIDATE DATA:
         }
         state_errors = state.get("errors", []) + [f"enhance LLM failed: {e}"]
 
-    print("✅ [Enhance] Done")
+    print("[Enhance] Done")
 
     return {
         **state,
@@ -200,44 +127,9 @@ CANDIDATE DATA:
     }
 
 
-ATS_OPTIMIZE_SYSTEM_PROMPT = """You are an ATS optimization expert.
-Take enhanced resume data and optimize it to make it highly professional and competitive, ensuring it is formatted cleanly for a ONE-PAGE resume without artificially deleting important content.
-
-Return ONLY valid JSON:
-{
-  "name": "Full Name",
-  "title": "Professional Title",
-  "contact": {
-    "email": "email",
-    "phone": "phone",
-    "location": "location",
-    "linkedin": "url or null",
-    "github": "url or null",
-    "portfolio": "url or null"
-  },
-  "summary": "concise 2-3 sentence summary",
-  "skills": {
-    "technical": ["top skills"],
-    "tools": ["top tools"],
-    "soft": ["top soft skills"]
-  },
-  "experience": [experiences with all major impact-oriented bullet points preserved],
-  "projects": [{"title": "Project Name", "description": ["bullet 1", "bullet 2"], "technologies": "...", "link": "...", "date": "..."}],
-  "education": [education entries],
-  "certifications": [certifications],
-  "achievements": ["achievements list"]
-}
-
-Rules:
-- Prioritize high-impact, relevant content
-- Keep bullet points clear and concise (around 1-2 lines each), focusing on metrics and results
-- Do not artificially truncate experiences to a strict count or delete major bullet points unless necessary to fit the 1-page layout
-- Preserve all achievements and projects that add significant value
-- The condensation loop will handle final page fitting; optimize for maximum professional detail here"""
-
 
 def ats_optimize_node(state: ResumeState) -> dict:
-    print("📄 [ATS Optimize] Calling LLM...")
+    print("[ATS Optimize] Calling LLM...")
 
     normalized = state.get("normalized_data", {})
     enhanced = state.get("enhanced_resume", {})
@@ -258,10 +150,10 @@ ENHANCED DATA:
 {json.dumps(enhanced, indent=2, default=str)}"""
 
     try:
-        optimized = call_llm_json(ATS_OPTIMIZE_SYSTEM_PROMPT, user_prompt, max_tokens=3000)
+        optimized = call_llm_json(ATS_OPTIMIZE_SYSTEM_PROMPT, user_prompt, max_tokens=3500)
         state_errors = state.get("errors", [])
     except LLMClientError as e:
-        print(f"⚠️ [ATS Optimize] LLM failed: {e}")
+        print(f"[ATS Optimize] LLM failed: {e}")
         optimized = {
             "name": normalized.get("name", ""),
             "title": normalized.get("title", ""),
@@ -283,7 +175,7 @@ ENHANCED DATA:
         }
         state_errors = state.get("errors", []) + [f"ats_optimize LLM failed: {e}"]
 
-    print("✅ [ATS Optimize] Done")
+    print("[ATS Optimize] Done")
 
     return {
         **state,
@@ -293,33 +185,8 @@ ENHANCED DATA:
     }
 
 
-LATEX_BUILDER_SYSTEM_PROMPT = """You are a LaTeX resume typesetter. You will receive:
-1. An EXACT LaTeX template (.tex file) — this is the SKELETON you must use
-2. Candidate data in JSON format
-
-Your ONLY job is to REPLACE the personal data inside the template with the candidate's data.
-
-STRICT RULES:
-- Output ONLY raw LaTeX code. No markdown fences. No explanations.
-- Keep the template's EXACT document structure: same \\documentclass, same \\usepackage lines,
-  same \\geometry, same \\titleformat, same \\hypersetup structure, same \\section order.
-- Do NOT add, remove, or reorder any packages.
-- Do NOT change margins, font sizes, \\vspace values, \\linespread, or any spacing commands.
-- Do NOT change the \\begin{itemize} / \\end{itemize} formatting or \\setlist options.
-- ONLY replace the human-readable content: name, title, contact info, summary text,
-  skill lists, experience entries, project entries, education, certifications, achievements.
-- Preserve the \\metric{} command — wrap any quantifiable numbers/percentages in \\metric{}.
-- Escape LaTeX special characters in candidate data: & → \\&, % → \\%, # → \\#, _ → \\_,
-  $ → \\$, ~ → \\textasciitilde{}
-- All \\href links must use the candidate's actual URLs.
-- The resume MUST fit on exactly ONE page. If the candidate has more content than fits,
-  trim the least impactful bullets/items to fit — never spill to page 2.
-- The output MUST compile with pdflatex without errors.
-- If the template has a \\newcommand (like \\metric), keep it exactly as defined."""
-
-
 def latex_builder_node(state: ResumeState) -> dict:
-    print("📝 [LaTeX Builder] Calling LLM to generate LaTeX...")
+    print("[LaTeX Builder] Calling LLM to generate LaTeX...")
 
     optimized = state.get("ats_optimized_data", {})
     template_content = state.get("template_content", "")
@@ -340,9 +207,9 @@ CANDIDATE DATA TO INSERT:
 {json.dumps(optimized, indent=2, default=str)}"""
 
     try:
-        latex = call_llm(LATEX_BUILDER_SYSTEM_PROMPT, user_prompt, max_tokens=3000)
+        latex = call_llm(LATEX_BUILDER_SYSTEM_PROMPT, user_prompt, max_tokens=4096)
     except LLMClientError as e:
-        print(f"⚠️ [LaTeX Builder] LLM failed: {e}")
+        print(f"[LaTeX Builder] LLM failed: {e}")
         return {
             **state,
             "latex_content": "",
@@ -357,7 +224,7 @@ CANDIDATE DATA TO INSERT:
     if latex.endswith("```"):
         latex = latex[:-3].strip()
 
-    print(f"✅ [LaTeX Builder] Generated {len(latex)} chars")
+    print(f"[LaTeX Builder] Generated {len(latex)} chars")
 
     return {
         **state,
@@ -368,11 +235,11 @@ CANDIDATE DATA TO INSERT:
 
 
 def pdf_compiler_node(state: ResumeState) -> dict:
-    print("📄 [PDF Compiler] Compiling LaTeX to PDF...")
+    print("[PDF Compiler] Compiling LaTeX to PDF...")
 
     latex_content = state.get("latex_content", "")
     if not latex_content:
-        print("⚠️ [PDF Compiler] No LaTeX content")
+        print("[PDF Compiler] No LaTeX content")
         return {
             **state,
             "pdf_bytes": b"",
@@ -406,7 +273,7 @@ def pdf_compiler_node(state: ResumeState) -> dict:
                 if os.path.exists(log_path):
                     with open(log_path, "r") as lf:
                         log_content = lf.read()[-2000:]
-                print(f"❌ [PDF Compiler] pdflatex failed.\n{log_content}")
+                print(f"[PDF Compiler] pdflatex failed.\n{log_content}")
                 return {
                     **state,
                     "pdf_bytes": b"",
@@ -426,10 +293,10 @@ def pdf_compiler_node(state: ResumeState) -> dict:
                 pdf_doc.close()
             except ImportError:
                 page_count = max(1, len(pdf_bytes) // 50000)
-                print("⚠️ [PDF Compiler] PyMuPDF not available, estimated page count")
+                print("[PDF Compiler] PyMuPDF not available, estimated page count")
 
         except subprocess.TimeoutExpired:
-            print("❌ [PDF Compiler] pdflatex timed out")
+            print("[PDF Compiler] pdflatex timed out")
             return {
                 **state,
                 "pdf_bytes": b"",
@@ -439,7 +306,7 @@ def pdf_compiler_node(state: ResumeState) -> dict:
                 "errors": state.get("errors", []) + [f"pdflatex timed out (attempt {attempts})"],
             }
         except FileNotFoundError:
-            print("❌ [PDF Compiler] pdflatex not found — install TeX Live or MiKTeX")
+            print("[PDF Compiler] pdflatex not found — install TeX Live or MiKTeX")
             return {
                 **state,
                 "pdf_bytes": b"",
@@ -449,7 +316,7 @@ def pdf_compiler_node(state: ResumeState) -> dict:
                 "errors": state.get("errors", []) + ["pdflatex not found on system"],
             }
 
-    print(f"✅ [PDF Compiler] {len(pdf_bytes)} bytes, {page_count} page(s) (attempt {attempts})")
+    print(f"[PDF Compiler] {len(pdf_bytes)} bytes, {page_count} page(s) (attempt {attempts})")
 
     return {
         **state,
@@ -461,30 +328,11 @@ def pdf_compiler_node(state: ResumeState) -> dict:
     }
 
 
-CONDENSE_SYSTEM_PROMPT = """You are an expert LaTeX resume editor.
-The resume compiles to MORE than 1 page. Condense it to fit exactly ONE page.
-
-Strategies:
-- Shorten bullet points (keep metrics, cut filler)
-- Remove least impactful bullets
-- Trim summary to 1 sentence
-- Remove less critical achievements or certs
-- Reduce project descriptions
-- Use tighter LaTeX spacing if needed
-
-Rules:
-- Output ONLY raw LaTeX code, no markdown fences
-- Keep same document structure and packages
-- Do NOT remove entire sections
-- Preserve all links and contact info
-- Must compile with pdflatex
-- Prioritize keeping quantifiable metrics"""
-
 
 def condense_resume_node(state: ResumeState) -> dict:
     attempts = state.get("compilation_attempts", 0)
     page_count = state.get("page_count", "?")
-    print(f"✂️ [Condense] {page_count} pages — condensing (attempt {attempts})...")
+    print(f"[Condense] {page_count} pages — condensing (attempt {attempts})...")
 
     latex = state.get("latex_content", "")
 
@@ -509,9 +357,9 @@ CURRENT LATEX:
 {latex}"""
 
     try:
-        condensed = call_llm(CONDENSE_SYSTEM_PROMPT, user_prompt, max_tokens=3000)
+        condensed = call_llm(CONDENSE_SYSTEM_PROMPT, user_prompt, max_tokens=4096)
     except LLMClientError as e:
-        print(f"⚠️ [Condense] LLM failed: {e}")
+        print(f"[Condense] LLM failed: {e}")
         return {
             **state,
             "processing_steps": state.get("processing_steps", []) + ["condense_failed"],
@@ -525,7 +373,7 @@ CURRENT LATEX:
     if condensed.endswith("```"):
         condensed = condensed[:-3].strip()
 
-    print(f"✅ [Condense] {len(latex)} → {len(condensed)} chars")
+    print(f"[Condense] {len(latex)} → {len(condensed)} chars")
 
     return {
         **state,
@@ -534,86 +382,13 @@ CURRENT LATEX:
         "errors": state.get("errors", []),
     }
 
-ATS_SCORER_SYSTEM_PROMPT = """You are a ruthless, highly analytical Applicant Tracking System (ATS) and resume reviewer.
-
-Your job is NOT to encourage the user. Your job is to rank resumes fairly and differentiate mediocre resumes from exceptional ones.
-
-Evaluate the resume solely on content quality. Ignore LaTeX commands, Markdown syntax, formatting tags, and styling. Score only the underlying information.
-
-Return ONLY valid JSON matching this exact schema:
-{
-  "score": <integer>,
-  "strengths": [
-    "Clear strength 1",
-    "Clear strength 2"
-  ],
-  "improvements": [
-    "Actionable improvement 1",
-    "Actionable improvement 2"
-  ]
-}
-
-SCORING DIMENSIONS
-
-1. Hard Skills & Technical Depth (25%)
-* Strong, industry-standard skills.
-* Tools should appear inside projects and experience, not just skill lists.
-* Deduct heavily for generic or keyword-stuffed resumes.
-
-2. Experience & Impact (25%)
-* Strong action verbs.
-* Ownership and complexity matter.
-* "Built", "Architected", "Designed", "Implemented" are preferred.
-* Weak phrases like "Worked on", "Helped with", "Assisted" reduce scores.
-
-3. Quantifiable Metrics (25%) [MOST IMPORTANT]
-* Metrics, percentages, scale, latency improvements, users, accuracy, throughput, etc.
-* If no measurable outcomes exist, the score CANNOT exceed 65.
-* Metric-heavy resumes with strong impact deserve 85+.
-
-4. Projects Quality (15%)
-* Complexity and uniqueness matter.
-* Real-world projects score higher.
-* CRUD clones and tutorial projects score poorly.
-
-5. Readability & Conciseness (10%)
-* Clear bullets.
-* No fluff.
-* No excessive buzzwords.
-* Efficient use of space.
-
-SCORING GUIDE
-
-20-39: Very weak resume. Few technical details. No impact. Little evidence of skills.
-40-54: Below average. Generic projects. Weak bullets. No metrics.
-55-65: Average. Decent skills and projects. Limited impact. Missing measurable outcomes.
-66-79: Strong resume. Good technical depth. Some metrics. Solid projects.
-80-89: Excellent resume. Strong ownership. Multiple quantified achievements. Advanced projects.
-90-95: Exceptional. Outstanding technical depth. Consistent metrics. High-impact work.
-96-99: World-class. Rare level. Outstanding projects, impact, metrics and clarity.
-
-CRITICAL RULES
-
-1. Never default to scores in the 80s.
-2. Use the entire range from 20 to 99.
-3. If metrics are missing, score must be <=65.
-4. Do not reward buzzwords without evidence.
-5. Ignore formatting and styling.
-6. Penalize repetition and fluff.
-7. High scores must be extremely difficult to obtain.
-8. A resume should not receive 90+ unless multiple sections contain measurable impact.
-9. Freshers can still score highly if projects are exceptional and quantified.
-10. Return only JSON and nothing else.
-11. If you mention LaTeX commands, you MUST escape backslashes (e.g. \\\\textbf) or the JSON will be invalid."""
-
-
 def ats_scorer_node(state: ResumeState) -> dict:
-    print("📊 [ATS Scorer] Scoring resume...")
+    print("[ATS Scorer] Scoring resume...")
 
     pdf_bytes = state.get("pdf_bytes", b"")
     
     if not pdf_bytes:
-        print("⚠️ [ATS Scorer] No PDF bytes found. Falling back to LaTeX.")
+        print("[ATS Scorer] No PDF bytes found. Falling back to LaTeX.")
         resume_content = state.get("latex_content", "")
     else:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -622,7 +397,7 @@ def ats_scorer_node(state: ResumeState) -> dict:
         try:
             resume_content = pdf_to_text(tmp_path)
         except Exception as e:
-            print(f"⚠️ [ATS Scorer] PDF text extraction failed: {e}. Falling back to LaTeX.")
+            print(f"[ATS Scorer] PDF text extraction failed: {e}. Falling back to LaTeX.")
             resume_content = state.get("latex_content", "")
         finally:
             os.unlink(tmp_path)
@@ -636,7 +411,7 @@ RESUME TEXT:
         feedback = call_llm_json(ATS_SCORER_SYSTEM_PROMPT, user_prompt, max_tokens=2048)
         score = feedback.get("score", 0)
     except LLMClientError as e:
-        print(f"⚠️ [ATS Scorer] LLM failed: {e}")
+        print(f"[ATS Scorer] LLM failed: {e}")
         score = 0
         feedback = {
             "score": 0,
@@ -644,7 +419,7 @@ RESUME TEXT:
             "improvements": [str(e)],
         }
 
-    print(f"✅ [ATS Scorer] Score: {score}/100")
+    print(f"[ATS Scorer] Score: {score}/100")
 
     return {
         **state,
@@ -663,20 +438,20 @@ def check_page_count(state: ResumeState) -> str:
     attempts = state.get("compilation_attempts", 0)
 
     if page_count <= 1:
-        print(f"✅ [Router] {page_count} page(s) — proceeding to scoring")
+        print(f"[Router] {page_count} page(s) — proceeding to scoring")
         return "ats_scorer"
 
     if attempts >= HARD_CAP_RETRIES:
-        print(f"❌ [Router] FAILED: still {page_count} pages after {attempts} attempts — aborting")
+        print(f"[Router] FAILED: still {page_count} pages after {attempts} attempts — aborting")
         raise RuntimeError(
             f"Resume is {page_count} pages after {attempts} condensation attempts. "
             f"Could not fit to 1 page. Review content or template."
         )
 
     if attempts >= MAX_PAGE_RETRIES:
-        print(f"⚠️ [Router] {page_count} pages after {attempts} attempts — aggressive condense")
+        print(f"[Router] {page_count} pages after {attempts} attempts — aggressive condense")
     else:
-        print(f"🔄 [Router] {page_count} pages — condensing (attempt {attempts}/{MAX_PAGE_RETRIES})")
+        print(f"[Router] {page_count} pages — condensing (attempt {attempts}/{MAX_PAGE_RETRIES})")
 
     return "condense"
 
@@ -717,7 +492,7 @@ resume_processing_graph = create_resume_processing_graph().compile()
 
 
 def process_resume_with_graph(resume_data: Dict[str, Any]) -> Dict[str, Any]:
-    print("🚀 Starting resume processing pipeline...")
+    print("Starting resume processing pipeline...")
 
     initial_state: ResumeState = {
         "resume_data": resume_data,
@@ -741,11 +516,11 @@ def process_resume_with_graph(resume_data: Dict[str, Any]) -> Dict[str, Any]:
             "errors": result.get("errors", []),
         }
 
-        print(f"✅ Done — {result.get('page_count', '?')} page(s), ATS: {result.get('ats_score', '?')}/100")
+        print(f"Done — {result.get('page_count', '?')} page(s), ATS: {result.get('ats_score', '?')}/100")
         return response
 
     except Exception as e:
-        print(f"❌ Pipeline failed: {e}")
+        print(f"Pipeline failed: {e}")
         return {
             "success": False,
             "error": str(e),

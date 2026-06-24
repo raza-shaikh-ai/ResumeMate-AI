@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional,TypedDict
 
 class Project(BaseModel):
     title: str
@@ -49,3 +49,21 @@ class ResumeData(BaseModel):
     certifications: Optional[List[Certification]] = Field(default_factory=list)
     achievements: Optional[List[str]] = Field(default_factory=list)
     additional_info: Optional[str] = None
+
+
+
+class ResumeState(TypedDict, total=False):
+    resume_data: dict
+    normalized_data: dict
+    enhanced_resume: dict
+    ats_optimized_data: dict
+    selected_template: str
+    template_content: str
+    latex_content: str
+    pdf_bytes: bytes
+    page_count: int
+    ats_score: int
+    ats_feedback: dict
+    compilation_attempts: int
+    processing_steps: List[str]
+    errors: List[str]

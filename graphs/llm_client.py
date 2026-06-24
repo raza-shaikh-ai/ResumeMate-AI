@@ -1,5 +1,7 @@
 import os
 import json
+import time
+import logging
 import boto3
 from typing import Optional
 
@@ -9,7 +11,10 @@ from graphs.config import (
     LLM_MODEL_NAME,
     LLM_TEMPERATURE,
     LLM_MAX_TOKENS,
+    LLM_MAX_RETRIES,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClientError(Exception):
@@ -30,6 +35,22 @@ def _validate_config():
         )
 
 
+_bedrock_client = None
+
+
+def _get_client():
+    global _bedrock_client
+    if _bedrock_client is None:
+        try:
+            _bedrock_client = boto3.client(
+                service_name="bedrock-runtime",
+                region_name=AWS_DEFAULT_REGION,
+            )
+        except Exception as e:
+            raise LLMClientError(f"Failed to initialize AWS Bedrock client: {e}") from e
+    return _bedrock_client
+
+
 def call_llm(
     system_prompt: str,
     user_prompt: str,
@@ -38,50 +59,53 @@ def call_llm(
 ) -> str:
     _validate_config()
 
-    if AWS_BEARER_TOKEN_BEDROCK:
-        os.environ["AWS_BEARER_TOKEN_BEDROCK"] = AWS_BEARER_TOKEN_BEDROCK
-
-    try:
-        client = boto3.client(
-            service_name="bedrock-runtime",
-            region_name=AWS_DEFAULT_REGION,
-        )
-    except Exception as e:
-        raise LLMClientError(f"Failed to initialize AWS Bedrock client: {e}") from e
-
+    client = _get_client()
     temp_val = temperature if temperature is not None else LLM_TEMPERATURE
     max_tokens_val = max_tokens if max_tokens is not None else LLM_MAX_TOKENS
 
-    try:
-        response = client.converse(
-            modelId=LLM_MODEL_NAME,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [{"text": user_prompt}]
+    last_error = None
+    for attempt in range(1, LLM_MAX_RETRIES + 1):
+        try:
+            response = client.converse(
+                modelId=LLM_MODEL_NAME,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [{"text": user_prompt}]
+                    }
+                ],
+                system=[
+                    {
+                        "text": system_prompt
+                    }
+                ],
+                inferenceConfig={
+                    "temperature": temp_val,
+                    "maxTokens": max_tokens_val
                 }
-            ],
-            system=[
-                {
-                    "text": system_prompt
-                }
-            ],
-            inferenceConfig={
-                "temperature": temp_val,
-                "maxTokens": max_tokens_val
-            }
-        )
-    except Exception as e:
-        raise LLMClientError(f"AWS Bedrock Converse API call failed: {e}") from e
+            )
+            content = response["output"]["message"]["content"][0]["text"]
+            return content.strip()
 
-    try:
-        content = response["output"]["message"]["content"][0]["text"]
-    except (KeyError, IndexError) as e:
-        raise LLMClientError(
-            f"Unexpected AWS Bedrock response structure: {json.dumps(response)}"
-        ) from e
+        except (KeyError, IndexError) as e:
+            raise LLMClientError(
+                f"Unexpected AWS Bedrock response structure: {json.dumps(response)}"
+            ) from e
+        except Exception as e:
+            last_error = e
+            if attempt < LLM_MAX_RETRIES:
+                wait = 2 ** attempt
+                logger.warning(
+                    f"Bedrock call failed (attempt {attempt}/{LLM_MAX_RETRIES}): {e}. "
+                    f"Retrying in {wait}s..."
+                )
+                print(f"LLM call failed (attempt {attempt}/{LLM_MAX_RETRIES}): {e}. Retrying in {wait}s...")
+                time.sleep(wait)
 
-    return content.strip()
+    raise LLMClientError(
+        f"AWS Bedrock Converse API call failed after {LLM_MAX_RETRIES} attempts "
+        f"(model: {LLM_MODEL_NAME}): {last_error}"
+    ) from last_error
 
 
 def call_llm_json(
@@ -106,4 +130,3 @@ def call_llm_json(
         raise LLMClientError(
             f"LLM response is not valid JSON.\nRaw:\n{raw[:1000]}\nError: {e}"
         ) from e
-

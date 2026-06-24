@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 
 def _extract_text_pymupdf(pdf: str) -> str:
-    """Fallback: extract plain text from PDF using PyMuPDF only."""
+
     doc = fitz.open(pdf)
     pages = []
     for page in doc:
@@ -18,8 +18,6 @@ def _extract_text_pymupdf(pdf: str) -> str:
 
 
 def pdf_to_text(pdf):
-    # Disable OCR — resume PDFs are text-based; OCR is not needed and
-    # causes a crash when the RapidOCR torch engine model is unavailable.
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = False
 
@@ -32,7 +30,6 @@ def pdf_to_text(pdf):
         result = converter.convert(pdf)
         docling_text = result.document.export_to_markdown()
     except Exception:
-        # Final fallback: pure PyMuPDF text extraction
         docling_text = _extract_text_pymupdf(pdf)
 
     pdf_doc = fitz.open(pdf)
