@@ -8,5 +8,5 @@ LLM_MODEL_NAME: str = os.getenv("LLM_MODEL_NAME", "us.amazon.nova-pro-v1:0")
 
 MAX_PAGE_RETRIES: int = 3
 LLM_MAX_RETRIES: int = 3
-LLM_TEMPERATURE: float = 0.3
+LLM_TEMPERATURE: float = 0.1
 LLM_MAX_TOKENS: int = 4096

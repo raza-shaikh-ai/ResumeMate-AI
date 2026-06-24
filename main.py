@@ -38,8 +38,8 @@ os.makedirs("static/resumes", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-def _run_pipeline(resume_dict: dict) -> dict:
-    result = process_resume_with_graph(resume_dict)
+def _run_pipeline(resume_dict: dict, pdf_text: Optional[str] = None) -> dict:
+    result = process_resume_with_graph(resume_dict, pdf_text)
     if not result.get("success") or not result.get("pdf_bytes"):
         raise HTTPException(
             status_code=500,
@@ -121,7 +121,7 @@ async def process_resume(
             raise HTTPException(status_code=422, detail=f"Invalid JSON data: {str(e)}")
 
     if resume_dict:
-        result = _run_pipeline(resume_dict)
+        result = _run_pipeline(resume_dict, pdfdata)
         candidate_name = resume_dict.get("name", "resume").replace(" ", "_").lower()
         db_name = resume_dict.get("name", "John Doe").strip()
         score = result.get("ats_score", 0)

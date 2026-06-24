@@ -95,11 +95,12 @@ def enhance_resume_node(state: ResumeState) -> dict:
     print("[Enhance] Calling LLM to enhance resume...")
 
     normalized = state.get("normalized_data", {})
+    pdf_text = state.get("pdf_text")
 
-    user_prompt = f"""Enhance this resume data. Return ONLY valid JSON.
-
-CANDIDATE DATA:
-{json.dumps(normalized, indent=2, default=str)}"""
+    user_prompt = "Enhance this resume data. Return ONLY valid JSON.\n\n"
+    if pdf_text:
+        user_prompt += f"ORIGINAL CANDIDATE RESUME PDF TEXT:\n{pdf_text}\n\n"
+    user_prompt += f"FORM DATA (USER INPUT):\n{json.dumps(normalized, indent=2, default=str)}"
 
     try:
         enhanced = call_llm_json(ENHANCE_SYSTEM_PROMPT, user_prompt, max_tokens=3500)
@@ -133,21 +134,21 @@ def ats_optimize_node(state: ResumeState) -> dict:
 
     normalized = state.get("normalized_data", {})
     enhanced = state.get("enhanced_resume", {})
+    pdf_text = state.get("pdf_text")
 
-    user_prompt = f"""Optimize for ONE-PAGE ATS format. Return ONLY valid JSON.
-
-CANDIDATE:
-Name: {normalized.get('name', '')}
-Title: {normalized.get('title', '')}
-Email: {normalized.get('email', '')}
-Phone: {normalized.get('phone', '')}
-Location: {normalized.get('location', '')}
-LinkedIn: {normalized.get('linkedin_url', '')}
-GitHub: {normalized.get('github_url', '')}
-Portfolio: {normalized.get('portfolio_url', '')}
-
-ENHANCED DATA:
-{json.dumps(enhanced, indent=2, default=str)}"""
+    user_prompt = "Optimize for ONE-PAGE ATS format. Return ONLY valid JSON.\n\n"
+    if pdf_text:
+        user_prompt += f"ORIGINAL CANDIDATE RESUME PDF TEXT:\n{pdf_text}\n\n"
+    user_prompt += f"CANDIDATE:\n"
+    user_prompt += f"Name: {normalized.get('name', '')}\n"
+    user_prompt += f"Title: {normalized.get('title', '')}\n"
+    user_prompt += f"Email: {normalized.get('email', '')}\n"
+    user_prompt += f"Phone: {normalized.get('phone', '')}\n"
+    user_prompt += f"Location: {normalized.get('location', '')}\n"
+    user_prompt += f"LinkedIn: {normalized.get('linkedin_url', '')}\n"
+    user_prompt += f"GitHub: {normalized.get('github_url', '')}\n"
+    user_prompt += f"Portfolio: {normalized.get('portfolio_url', '')}\n\n"
+    user_prompt += f"ENHANCED DATA:\n{json.dumps(enhanced, indent=2, default=str)}"
 
     try:
         optimized = call_llm_json(ATS_OPTIMIZE_SYSTEM_PROMPT, user_prompt, max_tokens=3500)
@@ -491,11 +492,12 @@ def create_resume_processing_graph() -> StateGraph:
 resume_processing_graph = create_resume_processing_graph().compile()
 
 
-def process_resume_with_graph(resume_data: Dict[str, Any]) -> Dict[str, Any]:
+def process_resume_with_graph(resume_data: Dict[str, Any], pdf_text: Any = None) -> Dict[str, Any]:
     print("Starting resume processing pipeline...")
 
     initial_state: ResumeState = {
         "resume_data": resume_data,
+        "pdf_text": pdf_text,
         "processing_steps": [],
         "errors": [],
         "compilation_attempts": 0,

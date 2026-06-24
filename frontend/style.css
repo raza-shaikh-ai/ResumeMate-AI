@@ -601,7 +601,12 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
   font-weight: 800;
   color: var(--text-1);
 }
-.score-denom { font-size: .8rem; color: var(--text-3); align-self: flex-end; padding-bottom: 6px; }
+.score-text-group {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.score-denom { font-size: .8rem; color: var(--text-3); }
 .score-grade {
   font-size: .9rem;
   font-weight: 600;
