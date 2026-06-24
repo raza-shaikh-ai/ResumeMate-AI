@@ -33,7 +33,6 @@ def pdf_to_text(pdf):
     except Exception as e:
         print(f"Docling conversion failed: {e}")
 
-    # Fallback to PyMuPDF if Docling output is empty, too short, or just a layout placeholder
     clean_docling = docling_text.strip().replace("<!-- image -->", "").strip()
     if not clean_docling or len(clean_docling) < 50:
         print("Docling text is empty or too short. Falling back to PyMuPDF.")
