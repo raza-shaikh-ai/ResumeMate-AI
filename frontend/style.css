@@ -904,7 +904,7 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
   padding: 12px 24px;
   font-size: .88rem;
   font-weight: 500;
-  color: var(--text-1);
+  color: #ffffff !important;
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow-lg);
   z-index: 1000;
