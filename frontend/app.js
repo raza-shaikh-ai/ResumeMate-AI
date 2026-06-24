@@ -6,6 +6,7 @@ const API_BASE = 'http://localhost:8000';
 let skills = [];
 let generatedPDFBytes = null;
 let generatedFilename = 'resume.pdf';
+let generatedLatex = '';
 let _pdfBlobUrl = null;
 let builderPDFFile = null;
 
@@ -283,6 +284,11 @@ function showResultCard(metadata) {
   logEl.innerHTML = '';
   [...(metadata.processing_steps || []), ...(metadata.errors || []).map(e => '' + e)]
     .forEach(s => { const d = document.createElement('div'); d.textContent = s; logEl.appendChild(d); });
+
+  // LaTeX download button
+  generatedLatex = metadata.latex_content || '';
+  const latexBtn = document.getElementById('download-latex-btn');
+  if (latexBtn) latexBtn.style.display = generatedLatex ? 'block' : 'none';
 }
 
 
@@ -314,7 +320,7 @@ function renderFeedback(containerId, feedback) {
     suggestions: { label: '💡 Suggestions', cls: 'neu' },
   };
   Object.entries(feedback).forEach(([key, value]) => {
-    if (key === 'score' || !value) return;
+    if (key === 'score' || key === 'dimension_scores' || !value) return;
     const meta = map[key] || { label: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), cls: 'neu' };
     const items = Array.isArray(value) ? value : [String(value)];
     if (!items.length) return;
@@ -347,6 +353,17 @@ function downloadPDF() {
   a.href = url; a.download = generatedFilename; a.click();
   URL.revokeObjectURL(url);
   showToast('PDF downloaded!');
+}
+
+function downloadLatex() {
+  if (!generatedLatex) { showToast('No LaTeX source available.'); return; }
+  const blob = new Blob([generatedLatex], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const texName = generatedFilename.replace(/\.pdf$/i, '') + '.tex';
+  a.href = url; a.download = texName; a.click();
+  URL.revokeObjectURL(url);
+  showToast('LaTeX source downloaded!');
 }
 
 

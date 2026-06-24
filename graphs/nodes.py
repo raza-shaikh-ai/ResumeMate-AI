@@ -56,22 +56,22 @@ def normalize_node(state: ResumeState) -> dict:
         resume_obj = resume_data
 
     normalized = {
-        "name": resume_obj.name.strip().title(),
-        "title": resume_obj.title.strip(),
-        "email": resume_obj.email.strip().lower(),
-        "phone": resume_obj.phone.strip() if resume_obj.phone else None,
-        "location": resume_obj.location.strip() if resume_obj.location else None,
-        "linkedin_url": resume_obj.linkedin_url.strip() if resume_obj.linkedin_url else None,
-        "github_url": resume_obj.github_url.strip() if resume_obj.github_url else None,
-        "portfolio_url": resume_obj.portfolio_url.strip() if resume_obj.portfolio_url else None,
-        "summary": resume_obj.summary.strip() if resume_obj.summary else None,
-        "skills": [s.strip() for s in resume_obj.skills] if resume_obj.skills else [],
-        "experience": _serialize_list(resume_obj.experience),
-        "projects": _serialize_list(resume_obj.projects),
-        "education": _serialize_list(resume_obj.education),
-        "certifications": _serialize_list(resume_obj.certifications),
-        "achievements": [a.strip() for a in resume_obj.achievements] if resume_obj.achievements else [],
-        "additional_info": resume_obj.additional_info.strip() if resume_obj.additional_info else None,
+        "name": resume_obj.name.strip().title() if resume_obj.name and resume_obj.name.strip() else None,
+        "title": resume_obj.title.strip() if resume_obj.title and resume_obj.title.strip() else None,
+        "email": resume_obj.email.strip().lower() if resume_obj.email and resume_obj.email.strip() else None,
+        "phone": resume_obj.phone.strip() if resume_obj.phone and resume_obj.phone.strip() else None,
+        "location": resume_obj.location.strip() if resume_obj.location and resume_obj.location.strip() else None,
+        "linkedin_url": resume_obj.linkedin_url.strip() if resume_obj.linkedin_url and resume_obj.linkedin_url.strip() else None,
+        "github_url": resume_obj.github_url.strip() if resume_obj.github_url and resume_obj.github_url.strip() else None,
+        "portfolio_url": resume_obj.portfolio_url.strip() if resume_obj.portfolio_url and resume_obj.portfolio_url.strip() else None,
+        "summary": resume_obj.summary.strip() if resume_obj.summary and resume_obj.summary.strip() else None,
+        "skills": [s.strip() for s in resume_obj.skills if s.strip()] if resume_obj.skills else [],
+        "experience": _serialize_list(resume_obj.experience) if resume_obj.experience else [],
+        "projects": _serialize_list(resume_obj.projects) if resume_obj.projects else [],
+        "education": _serialize_list(resume_obj.education) if resume_obj.education else [],
+        "certifications": _serialize_list(resume_obj.certifications) if resume_obj.certifications else [],
+        "achievements": [a.strip() for a in resume_obj.achievements if a.strip()] if resume_obj.achievements else [],
+        "additional_info": resume_obj.additional_info.strip() if resume_obj.additional_info and resume_obj.additional_info.strip() else None,
     }
 
     has_experience = bool(normalized["experience"])
@@ -99,8 +99,8 @@ def enhance_resume_node(state: ResumeState) -> dict:
 
     user_prompt = "Enhance this resume data. Return ONLY valid JSON.\n\n"
     if pdf_text:
-        user_prompt += f"ORIGINAL CANDIDATE RESUME PDF TEXT:\n{pdf_text}\n\n"
-    user_prompt += f"FORM DATA (USER INPUT):\n{json.dumps(normalized, indent=2, default=str)}"
+        user_prompt += f"<PDF_CONTENT>\n{pdf_text}\n</PDF_CONTENT>\n\n"
+    user_prompt += f"<MANUAL_INPUT>\n{json.dumps(normalized, indent=2, default=str)}\n</MANUAL_INPUT>"
 
     try:
         enhanced = call_llm_json(ENHANCE_SYSTEM_PROMPT, user_prompt, max_tokens=3500)

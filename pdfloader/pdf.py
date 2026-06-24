@@ -21,6 +21,7 @@ def pdf_to_text(pdf):
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = False
 
+    docling_text = ""
     try:
         converter = DocumentConverter(
             format_options={
@@ -28,8 +29,14 @@ def pdf_to_text(pdf):
             }
         )
         result = converter.convert(pdf)
-        docling_text = result.document.export_to_markdown()
-    except Exception:
+        docling_text = result.document.export_to_markdown() or ""
+    except Exception as e:
+        print(f"Docling conversion failed: {e}")
+
+    # Fallback to PyMuPDF if Docling output is empty, too short, or just a layout placeholder
+    clean_docling = docling_text.strip().replace("<!-- image -->", "").strip()
+    if not clean_docling or len(clean_docling) < 50:
+        print("Docling text is empty or too short. Falling back to PyMuPDF.")
         docling_text = _extract_text_pymupdf(pdf)
 
     pdf_doc = fitz.open(pdf)

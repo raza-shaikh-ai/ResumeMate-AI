@@ -672,6 +672,12 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
 }
 .download-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(16,185,129,.45); }
 
+.download-btn.latex-btn {
+  background: linear-gradient(135deg, #7C5CFC, #3B82F6);
+  box-shadow: 0 8px 24px rgba(124,92,252,.3);
+}
+.download-btn.latex-btn:hover { box-shadow: 0 14px 36px rgba(124,92,252,.5); }
+
 
 .log-details { margin-top: 16px; }
 .log-details summary {

@@ -28,7 +28,7 @@ RULE #2 — PDF CONTENT PRIORITY
 ════════════════════════════════════════════════════════
 Every experience role, project, education entry, certification, and achievement found in <PDF_CONTENT> MUST appear in your output. Do not skip, summarize away, or drop any item from the PDF.
 
-Manual fields inside <MANUAL_INPUT> take precedence only when they address the same field (e.g., if manual input has a different email than the PDF, use the manual one).
+Manual fields inside <MANUAL_INPUT> (like name, email, title, phone, location, links) take absolute precedence and MUST override the corresponding PDF values when provided and non-empty. You MUST use the manual value exactly as provided, even if it seems like a draft, a test name, or is not in a standard format (e.g., if name is "Random" and email is "dade", you MUST output "Random" and "dade"). Do not ignore them or fall back to the PDF's values.
 
 ════════════════════════════════════════════════════════
 RULE #3 — ONE-PAGE BULLET BUDGET (enforce before writing)

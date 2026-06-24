@@ -1,3 +1,4 @@
+# Trigger reload 2
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -100,7 +101,7 @@ async def process_resume(
     pdfdata = None
     resume_dict = None
 
-    if file and isinstance(file, UploadFile) and file.filename:
+    if file and hasattr(file, "filename") and file.filename:
         content = await file.read()
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
             temp_file.write(content)
@@ -149,6 +150,7 @@ async def process_resume(
             "pdf_url": pdf_url,
             "processing_steps": result.get("processing_steps", []),
             "errors": result.get("errors", []),
+            "latex_content": result.get("latex_content", ""),
         }
 
         return Response(

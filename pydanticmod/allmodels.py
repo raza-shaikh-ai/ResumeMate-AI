@@ -54,6 +54,7 @@ class ResumeData(BaseModel):
 
 class ResumeState(TypedDict, total=False):
     resume_data: dict
+    pdf_text: Optional[str]
     normalized_data: dict
     enhanced_resume: dict
     ats_optimized_data: dict
