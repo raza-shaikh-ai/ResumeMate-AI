@@ -1,0 +1,131 @@
+\DocumentMetadata{
+  lang=en-US,
+  pdfversion=1.7,
+  pdfstandard=ua-1,
+}
+\documentclass[10pt,a4paper]{article}
+
+% ---------- Packages ----------
+\usepackage[a4paper,top=0.45in,bottom=0.3in,left=0.5in,right=0.55in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{xcolor}
+
+\newcommand{\metric}[1]{\textbf{#1}}
+
+
+\linespread{0.95}
+\AtBeginDocument{\fontsize{10pt}{12pt}\selectfont}
+\setlist[itemize]{noitemsep, topsep=1pt}
+\setlength{\parindent}{0pt}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{5pt}{3pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    pdftitle={Raza Shaikh - Resume},
+    pdfauthor={Raza Shaikh},
+    pdfsubject={AI Engineer Resume}
+}
+
+% ---------- Document ----------
+\begin{document}
+
+% ---------- Header ----------
+\vspace{-20pt}
+\begin{center}
+    {\LARGE \textbf{Raza Shaikh}} \\
+    \vspace{1pt}
+    {\small \textit{Generative AI Engineer}} \\
+    \vspace{2pt}
+    {\small Pune, India \,|\, \href{mailto:razavcf@gmail.com}{razavcf@gmail.com} \,|\, +91~84214~72687 \,|\, LinkedIn: \href{https://www.linkedin.com/in/raza-shaikh-ai/}{Raza-Shaikh} \,|\, GitHub: \href{https://github.com/raza-shaikh-ai}{Razashaikh-AI}}
+\end{center}
+
+% ---------- Summary ----------
+\vspace{-6pt}
+\section*{Professional Summary}
+Generative AI Engineer specializing in Large Language Model (LLM) application development and Python backend engineering. Built and deployed production-grade Retrieval-Augmented Generation (RAG) pipelines, multi-agent orchestration systems, and cloud-native FastAPI backends on Amazon Web Services (AWS). AWS Certified AI Practitioner with hands-on expertise in LangChain, vector databases, Agentic AI.
+
+% ---------- Skills ----------
+\vspace{-2pt}
+\section*{Technical Skills}
+\vspace{1pt}
+
+\textbf{Languages:} Python, SQL \\
+\textbf{AI \& ML:} Generative AI, LLMs, RAG, Agentic AI, Multi-Agent Orchestration, Prompt Engineering,
+Machine Learning, NLP, LLM Evaluation, Embedding Models, LangChain, LangGraph, LangSmith, Hugging Face, Fine-tuning, OpenAI API, Anthropic API \\
+\textbf{Backend:} FastAPI, Flask, REST API Development, JSON Web Token (JWT) Authentication \\
+\textbf{Databases:} MySQL, PostgreSQL, ChromaDB, Vector Databases, OpenSearch Service (AWS) \\
+\textbf{Cloud \& DevOps:} AWS (EC2, S3, RDS, Bedrock), Docker, NGINX (Load Balancing), GitHub, CI/CD
+
+% ---------- Experience ----------
+\vspace{-2pt}
+\section*{Experience}
+\vspace{1pt}
+
+\textbf{AI Developer Intern} \hfill \textit{Jun 2025 -- Jan 2026} \\
+\textit{Solapur Municipal Corporation, Maharashtra} \hfill \textit{Government of Maharashtra E-Governance Program}
+\begin{itemize}
+    \item Architected \textbf{Civic Chain} -- a \textbf{multimodal AI complaint classification system} using \textbf{CNN + NLP pipelines} to classify citizen-uploaded images (road damage, water leakage, waste) and text, then automatically route each complaint to the correct municipal department, prabhag, and zone.
+    \item Achieved \metric{94\% classification accuracy} across \metric{12 complaint categories}, \metric{automating 1,000+ monthly cases} and \metric{reducing manual routing effort by 60\%} -- enabling faster resolution across Solapur's civic grievance redressal infrastructure.
+    \item Deployed end-to-end over a \metric{150-day} government initiative, integrating automated department allocation and real-time complaint tracking -- \metric{improving SLA compliance by 35\%} across municipal zones.
+\end{itemize}
+
+% ---------- Projects ----------
+\vspace{-2pt}
+\section*{Projects}
+\vspace{1pt}
+
+\textbf{Multi-Agent Resume Intelligence Platform} \,|\,
+\href{https://github.com/raza-shaikh-ai/Ai-agent-resume}{GitHub} \,|\,
+\href{https://ai-agent-resume-three.vercel.app/}{Live Demo}
+\hfill \textit{2026} \\
+\textit{Technologies: Python, FastAPI, AWS Bedrock, Multi-Agent Orchestration, Tavily Search, Docker}
+\begin{itemize}
+    \item Built a sequential multi-agent pipeline on AWS Bedrock that parses resumes, runs real-time web research via \textbf{Tavily Search}, and generates ATS-optimized resumes \metric{reducing manual tailoring time by 90\%}.
+    \item Designed a backend-first agentic architecture using FastAPI with specialized agents for Job Description requirement extraction, semantic skill-gap analysis via cosine similarity, and \textbf{fit score computation}.
+    \item Delivered recruiter-ready outputs (\textbf{matched skills, gaps, fit score}) via a Next.js dashboard with live pipeline tracking -- \metric{cutting resume review turnaround by 60\%}.
+\end{itemize}
+
+\textbf{Multilingual RAG Engine} \,|\,
+\href{https://github.com/raza-shaikh-ai/Rag-systems}{GitHub} \,|\,
+\href{https://rag-systems.vercel.app}{Live Demo} \,|\,
+\href{https://razashaikh9921-main-dev.hf.space/docs}{Backend API}
+\hfill \textit{2025} \\
+\textit{Built for multilingual enterprise knowledge retrieval -- enabling accurate document search and grounded AI responses across multiple languages.} \\
+\textit{Technologies: Python, FastAPI, LangChain, LangSmith, Chroma Vector Database, BGE-M3 Multilingual Embeddings, BM25, Reciprocal Rank Fusion, OpenRouter API}
+\begin{itemize}
+    \item Designed a RAGAS-based evaluation pipeline achieving \metric{0.92 faithfulness} and \metric{0.89 answer relevancy} across a \textbf{30-query multilingual benchmark} -- integrated LangSmith tracing for end-to-end observability.
+    \item Built a production RAG engine supporting multiple languages with \textbf{hybrid BM25 + vector retrieval} and Reciprocal Rank Fusion, \metric{improving retrieval precision by 35\%} over naive vector search.
+    \item Implemented script-aware chunking and BGE-M3 multilingual embeddings with a Chroma vector database, \metric{reducing hallucination rate by 40\%} on multilingual queries vs baseline.
+\end{itemize}
+
+\textbf{Cloud-Native Hostel Management System} \,|\,
+\href{https://github.com/raza-shaikh-ai/hostel-management-CRUD}{GitHub}
+\hfill \textit{2026} \\
+\textit{Technologies: Python, FastAPI, JWT Authentication, REST APIs, AWS EC2, PostgreSQL (Neon Cloud), NGINX}
+\begin{itemize}
+    \item Built a \textbf{FastAPI backend} managing hostel operations (student registration, room allocation, occupancy tracking) with PostgreSQL on Neon Cloud.
+    \item Implemented \textbf{JWT authentication} role-based access control and containerized deployment on EC2.
+    \item Integrated \textbf{NGINX load balancing} across multiple backend instances, achieving \metric{44\% lower latency} (\metric{104ms} to \metric{58ms}) and \metric{doubling throughput from 95 to 191 req/sec} under concurrent load.
+\end{itemize}
+
+% ---------- Education ----------
+\vspace{-4pt}
+\section*{Education}
+\vspace{1pt}
+\noindent\textbf{Bachelor of Technology -- Artificial Intelligence and Data Science} \hfill \textit{2023 -- 2027} \\
+\textit{Dr. Babasaheb Ambedkar Technological University (DBATU), Solapur, India} \hfill \textit{CGPA: 7.0/10}
+
+% ---------- Certifications ----------
+\vspace{-2pt}
+\section*{Certifications \& Achievements}
+\begin{itemize}
+    \item \textbf{AWS Certified AI Practitioner} [\href{https://www.credly.com/badges/54f5cf90-586c-4237-872c-1870397088a0}{AIF-C01}] \hfill {\small Issued Mar 2026 -- Expires Mar 2029}
+    \item \textbf{1st Runner-Up} -- Orchathon Hackathon 2026: Backend architecture, cloud integration, crash analytics platform
+\end{itemize}
+
+\end{document}

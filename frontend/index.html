@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeMate AI — AI-Powered Resume Builder</title>
+  <meta name="description" content="Build a stunning, ATS-optimized resume in seconds using ResumeMate AI. Upload your PDF or fill in your data and let our AI do the rest." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── BACKGROUND ORBS ───────────────────────────────────────────── -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- ── NAV ───────────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="10" fill="url(#g1)"/>
+            <path d="M9 10h14M9 15h9M9 20h11" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="23" cy="21" r="4" fill="#fff" fill-opacity=".15" stroke="#fff" stroke-width="1.5"/>
+            <path d="M21.5 21l1 1 2-2" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#6C63FF"/>
+                <stop offset="1" stop-color="#A855F7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="brand-name">ResumeMate <span class="brand-ai">AI</span></span>
+      </div>
+
+      <div class="nav-links">
+        <button class="nav-link active" id="nav-builder" onclick="showSection('builder')">Builder</button>
+        <button class="nav-link" id="nav-score" onclick="showSection('score')">ATS Score</button>
+        <button class="nav-link" id="nav-leaderboard" onclick="showSection('leaderboard'); loadLeaderboard()">Leaderboard</button>
+      </div>
+
+      <div class="nav-cta">
+        <div class="status-dot" id="api-status" title="API status"></div>
+        <span class="status-label" id="api-status-label">Checking…</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SECTION 1 – RESUME BUILDER
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-builder" class="section active">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">✦ AI-Powered · ATS Optimized · PDF Generated</div>
+      <h1 class="hero-title">Craft Your Perfect<br /><span class="gradient-text">Resume in Seconds</span></h1>
+      <p class="hero-subtitle">Fill in your details below, hit Generate, and our AI pipeline enhances every word, scores your resume against ATS systems, and delivers a polished PDF — instantly.</p>
+    </div>
+
+    <div class="builder-layout">
+
+      <!-- ── LEFT COLUMN: FORM ───────────────────────────────────────── -->
+      <div class="form-column">
+
+        <!-- Personal Info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-purple">👤</div>
+            <h2 class="card-title">Personal Info</h2>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="name">Full Name <span class="req">*</span></label>
+              <input type="text" id="name" placeholder="John Doe" />
+            </div>
+            <div class="field">
+              <label for="title">Professional Title <span class="req">*</span></label>
+              <input type="text" id="title" placeholder="Senior Software Engineer" />
+            </div>
+            <div class="field">
+              <label for="email">Email <span class="req">*</span></label>
+              <input type="email" id="email" placeholder="john@example.com" />
+            </div>
+            <div class="field">
+              <label for="phone">Phone</label>
+              <input type="text" id="phone" placeholder="+1 (555) 123-4567" />
+            </div>
+            <div class="field">
+              <label for="location">Location</label>
+              <input type="text" id="location" placeholder="San Francisco, CA" />
+            </div>
+            <div class="field">
+              <label for="linkedin">LinkedIn URL</label>
+              <input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." />
+            </div>
+            <div class="field">
+              <label for="github">GitHub URL</label>
+              <input type="url" id="github" placeholder="https://github.com/..." />
+            </div>
+            <div class="field">
+              <label for="portfolio">Portfolio URL</label>
+              <input type="url" id="portfolio" placeholder="https://yoursite.dev" />
+            </div>
+          </div>
+          <div class="field mt-12">
+            <label for="summary">Professional Summary</label>
+            <textarea id="summary" rows="3" placeholder="Experienced engineer with 8+ years in…"></textarea>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-blue">⚡</div>
+            <h2 class="card-title">Skills</h2>
+          </div>
+          <div class="field">
+            <label for="skills-input">Add skills (press Enter or comma)</label>
+            <input type="text" id="skills-input" placeholder="Python, FastAPI, Docker…" />
+          </div>
+          <div class="tags-container" id="skills-tags"></div>
+        </div>
+
+        <!-- Experience -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-green">💼</div>
+            <h2 class="card-title">Work Experience</h2>
+            <button class="add-btn" onclick="addExperience()">+ Add</button>
+          </div>
+          <div id="experience-list"></div>
+        </div>
+
+        <!-- Education -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-yellow">🎓</div>
+            <h2 class="card-title">Education</h2>
+            <button class="add-btn" onclick="addEducation()">+ Add</button>
+          </div>
+          <div id="education-list"></div>
+        </div>
+
+        <!-- Projects -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-pink">🚀</div>
+            <h2 class="card-title">Projects</h2>
+            <button class="add-btn" onclick="addProject()">+ Add</button>
+          </div>
+          <div id="projects-list"></div>
+        </div>
+
+        <!-- Certifications -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-orange">🏆</div>
+            <h2 class="card-title">Certifications</h2>
+            <button class="add-btn" onclick="addCertification()">+ Add</button>
+          </div>
+          <div id="certifications-list"></div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-teal">⭐</div>
+            <h2 class="card-title">Achievements</h2>
+          </div>
+          <div class="field">
+            <label>Add achievements (one per line)</label>
+            <textarea id="achievements" rows="4" placeholder="Employee of the Year 2022&#10;Speaker at PyCon 2020&#10;Open source contributor with 500+ GitHub stars"></textarea>
+          </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-gray">📝</div>
+            <h2 class="card-title">Additional Info</h2>
+          </div>
+          <div class="field">
+            <textarea id="additional_info" rows="2" placeholder="Available for remote work. Willing to relocate. Fluent in English and Spanish."></textarea>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button class="generate-btn" id="generate-btn" onclick="generateResume()">
+          <span class="generate-btn-inner">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="none"><path d="M10 2v4m0 8v4M2 10h4m8 0h4M4.93 4.93l2.83 2.83m4.48 4.48 2.83 2.83M15.07 4.93l-2.83 2.83M7.76 12.24 4.93 15.07" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Generate AI Resume
+          </span>
+        </button>
+
+      </div><!-- /form-column -->
+
+      <!-- ── RIGHT COLUMN: RESULT PANEL ─────────────────────────────── -->
+      <div class="result-column" id="result-column">
+
+        <div class="result-placeholder" id="result-placeholder">
+          <div class="placeholder-icon">✨</div>
+          <p class="placeholder-title">Your AI Resume Awaits</p>
+          <p class="placeholder-sub">Fill in your details on the left and click <strong>Generate AI Resume</strong> to see your result here.</p>
+        </div>
+
+        <!-- Processing Animation -->
+        <div class="processing-panel" id="processing-panel" style="display:none">
+          <div class="processing-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring delay1"></div>
+            <div class="spinner-ring delay2"></div>
+          </div>
+          <h3 class="processing-title">AI is working…</h3>
+          <div class="pipeline-steps" id="pipeline-steps">
+            <div class="step" data-step="normalize">🔧 Normalizing resume data</div>
+            <div class="step" data-step="enhance">✨ Enhancing with AI</div>
+            <div class="step" data-step="ats">📄 ATS Optimizing</div>
+            <div class="step" data-step="latex">📝 Building LaTeX</div>
+            <div class="step" data-step="pdf">🖨️ Compiling PDF</div>
+            <div class="step" data-step="score">📊 Scoring ATS</div>
+          </div>
+        </div>
+
+        <!-- Result Card -->
+        <div class="result-card" id="result-card" style="display:none">
+          <div class="result-header">
+            <div class="result-success-badge">✅ Resume Generated!</div>
+          </div>
+
+          <!-- ATS Score Meter -->
+          <div class="score-section">
+            <p class="score-label">ATS Score</p>
+            <div class="score-ring-container">
+              <svg class="score-ring" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" class="ring-track"/>
+                <circle cx="60" cy="60" r="50" class="ring-fill" id="ring-fill"/>
+              </svg>
+              <div class="score-value-wrap">
+                <span class="score-number" id="score-number">0</span>
+                <span class="score-denom">/100</span>
+              </div>
+            </div>
+            <p class="score-grade" id="score-grade"></p>
+          </div>
+
+          <!-- Feedback -->
+          <div class="feedback-section" id="feedback-section"></div>
+
+          <!-- Download -->
+          <button class="download-btn" id="download-btn" onclick="downloadPDF()">
+            ⬇️ Download PDF Resume
+          </button>
+
+          <!-- Processing Steps Log -->
+          <details class="log-details">
+            <summary>View Processing Log</summary>
+            <div class="log-content" id="log-content"></div>
+          </details>
+
+        </div><!-- /result-card -->
+
+        <!-- Error card -->
+        <div class="error-card" id="error-card" style="display:none">
+          <div class="error-icon">⚠️</div>
+          <h3 class="error-title">Something went wrong</h3>
+          <p class="error-msg" id="error-msg"></p>
+        </div>
+
+      </div><!-- /result-column -->
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SECTION 2 – ATS SCORE ONLY (PDF upload)
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-score" class="section">
+    <div class="hero">
+      <div class="hero-badge">📊 Instant ATS Analysis</div>
+      <h1 class="hero-title">Score Your <span class="gradient-text">Existing Resume</span></h1>
+      <p class="hero-subtitle">Upload any PDF resume and our AI will instantly score it for ATS compatibility with detailed feedback.</p>
+    </div>
+
+    <div class="score-upload-area">
+      <div class="card score-card">
+        <div class="upload-zone" id="upload-zone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('pdf-upload').click()">
+          <div class="upload-icon">📎</div>
+          <p class="upload-title">Drop your PDF here</p>
+          <p class="upload-sub">or click to browse files</p>
+          <p class="upload-formats">Supports PDF files only</p>
+          <input type="file" id="pdf-upload" accept=".pdf" style="display:none" onchange="handleFileSelect(event)" />
+        </div>
+        <div class="selected-file" id="selected-file" style="display:none">
+          <span class="file-icon">📄</span>
+          <span class="file-name" id="file-name-label"></span>
+          <button class="remove-file" onclick="removeFile()">✕</button>
+        </div>
+        <button class="generate-btn" id="score-btn" onclick="scoreResume()" style="margin-top:16px">
+          <span class="generate-btn-inner">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="none"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3zm0 2v5l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Analyze Resume
+          </span>
+        </button>
+      </div>
+
+      <!-- Score Result -->
+      <div class="score-result-card" id="score-result-card" style="display:none">
+        <div class="result-success-badge">✅ Analysis Complete</div>
+        <div class="score-section">
+          <p class="score-label">ATS Score</p>
+          <div class="score-ring-container">
+            <svg class="score-ring" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="50" class="ring-track"/>
+              <circle cx="60" cy="60" r="50" class="ring-fill" id="ring-fill-2"/>
+            </svg>
+            <div class="score-value-wrap">
+              <span class="score-number" id="score-number-2">0</span>
+              <span class="score-denom">/100</span>
+            </div>
+          </div>
+          <p class="score-grade" id="score-grade-2"></p>
+        </div>
+        <div class="feedback-section" id="feedback-section-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SECTION 3 – LEADERBOARD
+  ══════════════════════════════════════════════════════════════════ -->
+  <section id="section-leaderboard" class="section">
+    <div class="hero">
+      <div class="hero-badge">🏆 Community Rankings</div>
+      <h1 class="hero-title">Resume <span class="gradient-text">Leaderboard</span></h1>
+      <p class="hero-subtitle">See how the top AI-generated resumes rank by ATS score. Will yours make the list?</p>
+    </div>
+
+    <div class="leaderboard-container">
+      <div class="card leaderboard-card">
+        <div class="leaderboard-header-row">
+          <span class="lb-col">#</span>
+          <span class="lb-col lb-name">Name</span>
+          <span class="lb-col lb-score">ATS Score</span>
+          <span class="lb-col lb-link">PDF</span>
+        </div>
+        <div id="leaderboard-body">
+          <div class="lb-loading">
+            <div class="mini-spinner"></div>
+            Loading…
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TOAST ─────────────────────────────────────────────────────── -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
