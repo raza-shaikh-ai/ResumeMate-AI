@@ -34,8 +34,8 @@ Manual fields inside <MANUAL_INPUT> (like name, email, title, phone, location, l
 RULE #3 — ONE-PAGE BULLET BUDGET (enforce before writing)
 ════════════════════════════════════════════════════════
 The final resume must fit one LaTeX page. Apply these hard limits now:
-  - Experience bullets: MAX 4 per role
-  - Project bullets: MAX 2 per project
+  - Experience bullets: exactly 2-3 per role, must be lengthy and detailed (28-36 words each)
+  - Project bullets: exactly 2-3 per project, must be lengthy and detailed (28-36 words each)
   - Summary: MAX 3 sentences
   - Achievements: MAX 3 items
   - Certifications: MAX 3 items
@@ -72,8 +72,8 @@ OUTPUT FORMAT: Return ONLY valid JSON. No markdown fences. No explanation. No co
       "start_date": "Mon YYYY",
       "end_date": "Mon YYYY or Present",
       "description": [
-        "3-4 bullets max. Each bullet: [APPROVED VERB] + [what was built or owned] + [how / with what technology] + [outcome or scope]. Target 20-28 words per bullet. Never shorter than 15 words.",
-        "Use only these approved action verbs: Architected, Engineered, Built, Designed, Implemented, Deployed, Developed, Automated, Optimized, Led, Scaled, Reduced, Accelerated, Orchestrated, Spearheaded, Migrated, Refactored, Integrated, Delivered, Established. Do NOT repeat the same verb more than twice across the entire resume.",
+        "exactly 2-3 bullets. Each bullet: [APPROVED VERB] + [what was built or owned] + [how / with what technology] + [outcome or scope]. Target 28-36 words per bullet. Never shorter than 25 words or longer than 40 words.",
+        "Use only these approved action verbs: Architected, Engineered, Built, Designed, Implemented, Deployed, Developed, Automated, Optimized, Led, Scaled, Reduced, Accelerated, Orchestrated, Spearheaded, Migrated, Refactored, Integrated, Delivered, Established. Do NOT repeat the same action verb more than twice across the entire resume.",
         "BANNED verbs: Worked on, Helped with, Assisted in, Was responsible for, Participated in, Contributed to, Involved in"
       ]
     }
@@ -82,8 +82,8 @@ OUTPUT FORMAT: Return ONLY valid JSON. No markdown fences. No explanation. No co
     {
       "title": "Exact Project Name from source data",
       "description": [
-        "Bullet 1 (20-28 words): what was built + technical approach + key engineering challenge solved.",
-        "Bullet 2 (20-28 words): deployment, outcome, technical decision, or measurable/qualitative impact."
+        "Bullet 1 (28-36 words): what was built + technical approach + key engineering challenge solved.",
+        "Bullet 2 (28-36 words): deployment, outcome, technical decision, or measurable/qualitative impact."
       ],
       "technologies": "Tech1, Tech2, Tech3",
       "link": "URL exactly as provided or null",
@@ -123,7 +123,7 @@ Every bullet follows this structure:
   ✓ GOOD: "Engineered a real-time log aggregation service using Kafka and Elasticsearch, eliminating manual log review across a 12-service microservices architecture."
   ✓ GOOD: "Automated the CI/CD pipeline using GitHub Actions and Docker, cutting deployment time from 40 minutes to under 5 minutes per release cycle."
 
-Target 20-28 words per bullet. Do NOT write bullets shorter than 15 words or longer than 32 words.
+Target 28-36 words per bullet. Do NOT write bullets shorter than 25 words or longer than 40 words. Make each bullet a detailed, high-impact, multi-part sentence.
 Do NOT repeat the same action verb more than twice across the full resume.
 
 ════════════════════════════════════════════════════════
@@ -155,8 +155,8 @@ Do NOT fall back to generic placeholder data. If a field is null in the input, i
 ════════════════════════════════════════════════════════
 RULE #2 — ONE-PAGE HARD LIMITS (enforce these exactly)
 ════════════════════════════════════════════════════════
-  - Experience bullets: MAX 4 per role (trim weakest if more exist)
-  - Project bullets: MAX 2 per project (keep strongest 2)
+  - Experience bullets: exactly 2-3 per role (trim weakest if more exist, do not rewrite)
+  - Project bullets: exactly 2 per project (keep strongest 2)
   - Summary: MAX 3 sentences
   - Achievements: MAX 3 items
   - Certifications: MAX 3 items
@@ -194,8 +194,8 @@ OUTPUT FORMAT: Return ONLY valid JSON. No markdown fences. No explanation. No te
       "start_date": "Mon YYYY",
       "end_date": "Mon YYYY or Present",
       "description": [
-        "Keep max 4 strongest bullets from enhanced input. Prefer bullets with metrics, clear ownership verbs, and technical specificity.",
-        "Do not rewrite bullets — only trim count if > 4."
+        "Keep exactly 2-3 strongest bullets from enhanced input. Prefer bullets with metrics, clear ownership verbs, and technical specificity.",
+        "Do not rewrite bullets — only trim count if > 3."
       ]
     }
   ],
