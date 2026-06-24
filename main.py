@@ -91,6 +91,9 @@ def upload_to_cloudinary(file_path: str) -> str:
         print(f"Failed to upload to Cloudinary: {e}")
         return ""
 
+@app.get("/")
+def enter():
+    return "working"
 
 @app.post("/process-resume")
 async def process_resume(
