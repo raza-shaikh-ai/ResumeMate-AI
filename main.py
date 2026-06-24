@@ -9,6 +9,7 @@ import base64
 import uuid
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import requests
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -238,5 +239,47 @@ async def get_leaderboard():
         return {"success": True, "leaderboard": rows}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch leaderboard: {str(e)}")
+
+
+LAST_KNOWN_VISITORS = 1
+LAST_FETCH_TIME = 0.0
+
+
+@app.get("/visitors")
+async def get_visitors():
+    global LAST_KNOWN_VISITORS, LAST_FETCH_TIME
+    import time
+    current_time = time.time()
+    if current_time - LAST_FETCH_TIME < 15:
+        return {"success": True, "visitors": LAST_KNOWN_VISITORS}
+    load_dotenv(override=True)
+    project_id = os.getenv("POSTHOG_PROJECT_ID", "")
+    api_key = os.getenv("POSTHOG_API_KEY", "")
+    if not api_key:
+        return {"success": False, "visitors": LAST_KNOWN_VISITORS, "error": "POSTHOG_API_KEY not set"}
+    try:
+        url = f"https://us.posthog.com/api/projects/{project_id}/query"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "query": {
+                "kind": "HogQLQuery",
+                "query": f"SELECT count(distinct person_id) FROM events WHERE event = '$pageview' /* {uuid.uuid4().hex} */"
+            }
+        }
+        r = requests.post(url, headers=headers, json=data, timeout=10)
+        if r.status_code == 200:
+            res = r.json()
+            count = res.get("results", [[LAST_KNOWN_VISITORS]])[0][0]
+            if isinstance(count, (int, float)):
+                LAST_KNOWN_VISITORS = int(count)
+                LAST_FETCH_TIME = current_time
+            return {"success": True, "visitors": LAST_KNOWN_VISITORS}
+        else:
+            return {"success": True, "visitors": LAST_KNOWN_VISITORS}
+    except Exception:
+        return {"success": True, "visitors": LAST_KNOWN_VISITORS}
 
 

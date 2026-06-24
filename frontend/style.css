@@ -146,6 +146,19 @@ body {
 }
 
 
+.visitors-badge {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  margin-right: 8px;
+  font-family: var(--font-display);
+}
+
+
 .nav-cta { display: flex; align-items: center; gap: 8px; }
 .status-dot {
   width: 9px; height: 9px;

@@ -652,9 +652,27 @@ function loadExampleData() {
 }
 
 
+async function loadVisitorCount() {
+  try {
+    const res = await fetch(`${API_BASE}/visitors`);
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('visitors-count-badge').textContent = `Visitors: ${data.visitors}`;
+    } else {
+      document.getElementById('visitors-count-badge').textContent = 'Visitors: 0';
+    }
+  } catch (err) {
+    console.error('Failed to load visitor count:', err);
+    document.getElementById('visitors-count-badge').textContent = 'Visitors: 0';
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   checkAPIStatus();
   setInterval(checkAPIStatus, 30000);
+  loadVisitorCount();
+  setInterval(loadVisitorCount, 60000);
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateResume();
   });
