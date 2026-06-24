@@ -12,6 +12,7 @@ let skills = [];
 let generatedPDFBytes = null;
 let generatedFilename = 'resume.pdf';
 let _pdfBlobUrl = null;
+let builderPDFFile = null;
 
 /* ───────────────────────────────────────────────────────────
    NAV
@@ -236,13 +237,16 @@ function collectFormData() {
 ─────────────────────────────────────────────────────────── */
 async function generateResume() {
   const data = collectFormData();
-  if (!data.name || !data.title || !data.email) {
-    showToast('⚠️ Please fill in Name, Title, and Email.'); return;
+  if (!builderPDFFile && (!data.name || !data.title || !data.email)) {
+    showToast('⚠️ Please fill in Name, Title, and Email (or upload an existing PDF resume).'); return;
   }
   showResult('processing');
   animatePipeline();
 
   const formData = new FormData();
+  if (builderPDFFile) {
+    formData.append('file', builderPDFFile);
+  }
   formData.append('data', JSON.stringify(data));
 
   try {
@@ -631,6 +635,26 @@ function animateNumber(el, from, to, duration) {
     if (elapsed < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+}
+
+/* ───────────────────────────────────────────────────────────
+   BUILDER FILE UPLOAD CONTROLLERS
+─────────────────────────────────────────────────────────── */
+function handleBuilderFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  builderPDFFile = file;
+  document.getElementById('builder-file-name').textContent = file.name;
+  document.getElementById('builder-file-clear').style.display = 'inline-block';
+  showToast('📎 PDF attached. Click Generate to process and build!');
+}
+
+function clearBuilderFile() {
+  builderPDFFile = null;
+  document.getElementById('builder-pdf-upload').value = '';
+  document.getElementById('builder-file-name').textContent = 'No file chosen';
+  document.getElementById('builder-file-clear').style.display = 'none';
+  showToast('🗑️ PDF removed.');
 }
 
 /* ───────────────────────────────────────────────────────────

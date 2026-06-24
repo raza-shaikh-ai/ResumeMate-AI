@@ -70,6 +70,25 @@
       <!-- ── LEFT COLUMN: FORM ───────────────────────────────────────── -->
       <div class="form-column">
 
+        <!-- Upload PDF Resume -->
+        <div class="card" style="border: 1px dashed var(--purple); background: rgba(108, 99, 255, 0.02); margin-bottom: 24px;">
+          <div class="card-header" style="margin-bottom: 8px;">
+            <div class="card-icon icon-purple">📎</div>
+            <h2 class="card-title">Upload Existing PDF Resume</h2>
+          </div>
+          <p style="color: var(--text-2); font-size: 0.82rem; margin: 0 0 12px 0; line-height: 1.5;">
+            Optional: Upload your current PDF resume. The AI will parse it and merge it with any additional details you fill below.
+          </p>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <button class="add-btn" onclick="document.getElementById('builder-pdf-upload').click()" style="background: var(--purple); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8rem; height: 36px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+              Choose PDF File
+            </button>
+            <span id="builder-file-name" style="color: var(--text-3); font-size: 0.82rem;">No file chosen</span>
+            <input type="file" id="builder-pdf-upload" accept=".pdf" style="display: none" onchange="handleBuilderFileSelect(event)" />
+            <button id="builder-file-clear" onclick="clearBuilderFile()" style="display: none; background: transparent; border: none; color: var(--text-3); cursor: pointer; font-size: 0.82rem;">Remove</button>
+          </div>
+        </div>
+
         <!-- Personal Info -->
         <div class="card">
           <div class="card-header">
