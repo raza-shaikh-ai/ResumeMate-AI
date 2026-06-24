@@ -225,7 +225,13 @@ async def get_leaderboard():
     try:
         conn = psycopg2.connect(db_url)
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT id, name, ats_score, pdf_url FROM leaderboard ORDER BY ats_score DESC LIMIT 50")
+        cur.execute(
+            "SELECT id, name, ats_score, pdf_url FROM ("
+            "  SELECT DISTINCT ON (LOWER(name)) id, name, ats_score, pdf_url "
+            "  FROM leaderboard "
+            "  ORDER BY LOWER(name), ats_score DESC"
+            ") subquery ORDER BY ats_score DESC LIMIT 50"
+        )
         rows = cur.fetchall()
         cur.close()
         conn.close()
