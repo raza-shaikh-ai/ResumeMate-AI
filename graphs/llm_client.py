@@ -1,12 +1,12 @@
+import os
 import json
-import requests
-import time
+import boto3
 from typing import Optional
 
 from graphs.config import (
-    LLM_API_URL,
+    AWS_BEARER_TOKEN_BEDROCK,
+    AWS_DEFAULT_REGION,
     LLM_MODEL_NAME,
-    LLM_API_KEY,
     LLM_TEMPERATURE,
     LLM_MAX_TOKENS,
 )
@@ -18,13 +18,15 @@ class LLMClientError(Exception):
 
 def _validate_config():
     missing = []
+    if not AWS_BEARER_TOKEN_BEDROCK:
+        missing.append("AWS_BEARER_TOKEN_BEDROCK")
+    if not AWS_DEFAULT_REGION:
+        missing.append("AWS_DEFAULT_REGION")
     if not LLM_MODEL_NAME:
         missing.append("LLM_MODEL_NAME")
-    if not LLM_API_KEY:
-        missing.append("LLM_API_KEY")
     if missing:
         raise LLMClientError(
-            f"LLM config incomplete — set these in graphs/config.py: {', '.join(missing)}"
+            f"AWS/Bedrock config incomplete — set these in your .env: {', '.join(missing)}"
         )
 
 
@@ -36,48 +38,47 @@ def call_llm(
 ) -> str:
     _validate_config()
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{LLM_MODEL_NAME}:generateContent?key={LLM_API_KEY}"
-
-    headers = {
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": user_prompt}]
-            }
-        ],
-        "systemInstruction": {
-            "parts": [{"text": system_prompt}]
-        },
-        "generationConfig": {
-            "temperature": temperature if temperature is not None else LLM_TEMPERATURE,
-            "maxOutputTokens": max_tokens if max_tokens is not None else LLM_MAX_TOKENS,
-        }
-    }
+    if AWS_BEARER_TOKEN_BEDROCK:
+        os.environ["AWS_BEARER_TOKEN_BEDROCK"] = AWS_BEARER_TOKEN_BEDROCK
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=120)
-    except requests.exceptions.RequestException as e:
-        raise LLMClientError(f"Gemini API request failed: {e}") from e
-
-    if response.status_code != 200:
-        raise LLMClientError(
-            f"Gemini API returned HTTP {response.status_code}: {response.text[:500]}"
+        client = boto3.client(
+            service_name="bedrock-runtime",
+            region_name=AWS_DEFAULT_REGION,
         )
+    except Exception as e:
+        raise LLMClientError(f"Failed to initialize AWS Bedrock client: {e}") from e
+
+    temp_val = temperature if temperature is not None else LLM_TEMPERATURE
+    max_tokens_val = max_tokens if max_tokens is not None else LLM_MAX_TOKENS
 
     try:
-        data = response.json()
-    except json.JSONDecodeError as e:
-        raise LLMClientError(f"Gemini API returned invalid JSON: {e}") from e
+        response = client.converse(
+            modelId=LLM_MODEL_NAME,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [{"text": user_prompt}]
+                }
+            ],
+            system=[
+                {
+                    "text": system_prompt
+                }
+            ],
+            inferenceConfig={
+                "temperature": temp_val,
+                "maxTokens": max_tokens_val
+            }
+        )
+    except Exception as e:
+        raise LLMClientError(f"AWS Bedrock Converse API call failed: {e}") from e
 
     try:
-        content = data["candidates"][0]["content"]["parts"][0]["text"]
+        content = response["output"]["message"]["content"][0]["text"]
     except (KeyError, IndexError) as e:
         raise LLMClientError(
-            f"Unexpected Gemini response structure: {json.dumps(data)[:500]}"
+            f"Unexpected AWS Bedrock response structure: {json.dumps(response)}"
         ) from e
 
     return content.strip()

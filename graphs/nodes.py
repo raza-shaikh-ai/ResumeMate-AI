@@ -534,7 +534,6 @@ CURRENT LATEX:
         "errors": state.get("errors", []),
     }
 
-
 ATS_SCORER_SYSTEM_PROMPT = """You are a ruthless, highly analytical Applicant Tracking System (ATS) and resume reviewer.
 
 Your job is NOT to encourage the user. Your job is to rank resumes fairly and differentiate mediocre resumes from exceptional ones.

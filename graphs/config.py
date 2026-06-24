@@ -2,9 +2,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-LLM_API_URL: str = os.getenv("LLM_API_URL", "")
-LLM_MODEL_NAME: str = os.getenv("LLM_MODEL_NAME", "")
-LLM_API_KEY: str = os.getenv("AGENT_ROUTER_TOKEN") or os.getenv("LLM_API_KEY") or ""
+AWS_BEARER_TOKEN_BEDROCK: str = os.getenv("AWS_BEARER_TOKEN_BEDROCK", "")
+AWS_DEFAULT_REGION: str = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
+LLM_MODEL_NAME: str = os.getenv("LLM_MODEL_NAME", "us.amazon.nova-pro-v1:0")
 
 MAX_PAGE_RETRIES: int = 3
 LLM_TEMPERATURE: float = 0.3
