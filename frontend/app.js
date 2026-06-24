@@ -1,6 +1,6 @@
 
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://razashaikh9921-resumebuilder.hf.space';
 
 
 let skills = [];
