@@ -62,7 +62,15 @@ def upload_to_cloudinary(file_path: str) -> str:
         print("⚠️ CLOUDINARY_URL not set, skipping Cloudinary upload.")
         return ""
     try:
-        upload_result = cloudinary.uploader.upload(file_path, resource_type="auto")
+        upload_result = cloudinary.uploader.upload(
+            file_path,
+            resource_type="raw",       # "raw" preserves the file as-is with correct Content-Type
+            format="pdf",              # ensure .pdf extension on the URL
+            type="upload",
+            access_mode="public",
+            use_filename=True,
+            unique_filename=True,
+        )
         print("✅ Uploaded to Cloudinary:", upload_result.get("secure_url"))
         return upload_result.get("secure_url", "")
     except Exception as e:
