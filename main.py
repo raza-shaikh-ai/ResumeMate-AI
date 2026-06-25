@@ -124,6 +124,13 @@ async def process_resume(
             raise HTTPException(status_code=422, detail=f"Invalid JSON data: {str(e)}")
 
     if resume_dict:
+        if not (resume_dict.get("name") or "").strip():
+            raise HTTPException(status_code=422, detail="Name is required.")
+        if not (resume_dict.get("title") or "").strip():
+            raise HTTPException(status_code=422, detail="Job Title is required.")
+        if not (resume_dict.get("email") or "").strip():
+            raise HTTPException(status_code=422, detail="Email is required.")
+
         result = _run_pipeline(resume_dict, pdfdata)
         candidate_name = resume_dict.get("name", "resume").replace(" ", "_").lower()
         db_name = resume_dict.get("name", "John Doe").strip()

@@ -221,8 +221,15 @@ function collectFormData() {
 
 async function generateResume() {
   const data = collectFormData();
-  if (!builderPDFFile && (!data.name || !data.title || !data.email)) {
-    showToast('Please fill in Name, Title, and Email (or upload an existing PDF resume).'); return;
+  // Always require name, title and email — even when uploading a PDF
+  if (!data.name || !data.name.trim()) {
+    showToast('Please enter your Full Name.'); return;
+  }
+  if (!data.title || !data.title.trim()) {
+    showToast('Please enter your Job Title.'); return;
+  }
+  if (!data.email || !data.email.trim()) {
+    showToast('Please enter your Email address.'); return;
   }
   showResult('processing');
   animatePipeline();
@@ -245,6 +252,7 @@ async function generateResume() {
     generatedPDFBytes = await response.blob();
     generatedFilename = metadata.filename || 'resume.pdf';
     showResultCard(metadata);
+
   } catch (err) {
     showResult('error');
     document.getElementById('error-msg').textContent = err.message;
@@ -459,24 +467,26 @@ function renderLeaderboard(rows) {
     const displayName = (row.name || 'Anonymous').replace(/_/g, ' ');
     const pillCls = scorePillClass(row.ats_score);
 
-    // Use local pdf_url first; if it's a relative path (may 404 after restart), fall back to cloudinary_url
-    let pdfUrl = '';
+    // Primary: local static URL (works while server is running & files exist)
+    // Fallback: cloudinary_url (persistent, used automatically after server restart)
     const localUrl = row.pdf_url || '';
     const cloudUrl = row.cloudinary_url || '';
 
-    if (localUrl && localUrl.startsWith('http')) {
-      pdfUrl = localUrl;
-    } else if (cloudUrl) {
-      // Prefer Cloudinary (persistent) over relative local path
-      pdfUrl = cloudUrl;
+    // Always build the static URL as primary
+    let primaryUrl = '';
+    if (localUrl.startsWith('http')) {
+      primaryUrl = localUrl;
     } else if (localUrl) {
-      pdfUrl = `${API_BASE}${localUrl}`;
+      primaryUrl = `${API_BASE}${localUrl}`;
     }
 
-    const safeUrl = pdfUrl.replace(/'/g, "\\'");
+    // Pass cloudinary as fallback (empty string if not available)
+    const safePrimary = primaryUrl.replace(/'/g, "\\'");
+    const safeFallback = cloudUrl.replace(/'/g, "\\'");
     const safeName = displayName.replace(/'/g, "\\'");
-    const linkHtml = pdfUrl
-      ? `<button class="view-link" onclick="openPdfModal('${safeUrl}','${safeName}')">View ↗</button>`
+
+    const linkHtml = primaryUrl
+      ? `<button class="view-link" onclick="openPdfModal('${safePrimary}','${safeName}','${safeFallback}')">View ↗</button>`
       : `<span style="color:var(--text-3);font-size:.78rem">—</span>`;
     return `
       <div class="lb-row">
@@ -487,6 +497,7 @@ function renderLeaderboard(rows) {
       </div>`;
   }).join('');
 }
+
 
 
 
@@ -509,7 +520,7 @@ function renderLeaderboard(rows) {
 })();
 
 
-async function openPdfModal(url, name) {
+async function openPdfModal(url, name, fallbackUrl = '') {
   const modal = document.getElementById('pdf-modal');
   const body = document.getElementById('pdf-modal-body');
   const title = document.getElementById('pdf-modal-title');
@@ -531,27 +542,41 @@ async function openPdfModal(url, name) {
 
   if (_pdfBlobUrl) { URL.revokeObjectURL(_pdfBlobUrl); _pdfBlobUrl = null; }
 
-  try {
-    const resp = await fetch(url, { cache: 'no-store' });
-    if (!resp.ok) {
-      if (resp.status === 401 || resp.status === 403) {
-        throw new Error("UNAUTHORIZED");
-      }
-      throw new Error(`HTTP ${resp.status}`);
-    }
+  // Helper to load a URL into the modal
+  async function tryLoad(targetUrl) {
+    const resp = await fetch(targetUrl, { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const buf = await resp.arrayBuffer();
     const blob = new Blob([buf], { type: 'application/pdf' });
     _pdfBlobUrl = URL.createObjectURL(blob);
     body.innerHTML = `<embed src="${_pdfBlobUrl}" type="application/pdf" style="width:100%;height:100%;border:none;display:block;">`;
+    dlBtn.href = targetUrl;
+  }
+
+  try {
+    // 1st attempt: local /static/ URL (works while server is running)
+    await tryLoad(url);
     return;
   } catch (e) {
-    console.warn('[PDF Modal] fetch failed:', e.message);
-    if (e.message === "UNAUTHORIZED" || url.includes("cloudinary.com")) {
-      showCloudinaryFallback(body, url);
-      return;
+    console.warn('[PDF Modal] primary URL failed:', e.message);
+
+    // 2nd attempt: Cloudinary fallback (persistent after server restart)
+    if (fallbackUrl) {
+      try {
+        await tryLoad(fallbackUrl);
+        return;
+      } catch (e2) {
+        console.warn('[PDF Modal] Cloudinary fallback also failed:', e2.message);
+        if (e2.message.includes('401') || e2.message.includes('403') || fallbackUrl.includes('cloudinary.com')) {
+          showCloudinaryFallback(body, fallbackUrl);
+          dlBtn.href = fallbackUrl;
+          return;
+        }
+      }
     }
   }
 
+  // Last resort: direct embed
   body.innerHTML = `<embed src="${url}" type="application/pdf" style="width:100%;height:100%;border:none;display:block;">`;
 }
 
