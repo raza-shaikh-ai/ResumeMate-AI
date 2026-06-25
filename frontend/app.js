@@ -458,10 +458,21 @@ function renderLeaderboard(rows) {
     const rankClass = rank <= 3 ? `top-${rank}` : '';
     const displayName = (row.name || 'Anonymous').replace(/_/g, ' ');
     const pillCls = scorePillClass(row.ats_score);
-    let pdfUrl = row.pdf_url || '';
-    if (pdfUrl && !pdfUrl.startsWith('http')) {
-      pdfUrl = `${API_BASE}${pdfUrl}`;
+
+    // Use local pdf_url first; if it's a relative path (may 404 after restart), fall back to cloudinary_url
+    let pdfUrl = '';
+    const localUrl = row.pdf_url || '';
+    const cloudUrl = row.cloudinary_url || '';
+
+    if (localUrl && localUrl.startsWith('http')) {
+      pdfUrl = localUrl;
+    } else if (cloudUrl) {
+      // Prefer Cloudinary (persistent) over relative local path
+      pdfUrl = cloudUrl;
+    } else if (localUrl) {
+      pdfUrl = `${API_BASE}${localUrl}`;
     }
+
     const safeUrl = pdfUrl.replace(/'/g, "\\'");
     const safeName = displayName.replace(/'/g, "\\'");
     const linkHtml = pdfUrl
@@ -476,6 +487,7 @@ function renderLeaderboard(rows) {
       </div>`;
   }).join('');
 }
+
 
 
 (function injectPdfModal() {

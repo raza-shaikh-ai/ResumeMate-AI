@@ -51,7 +51,7 @@ def _run_pipeline(resume_dict: dict, pdf_text: Optional[str] = None) -> dict:
         )
     return result
 
-def save_to_leaderboard(name: str, ats_score: int, pdf_url: str):
+def save_to_leaderboard(name: str, ats_score: int, pdf_url: str, cloudinary_url: str = ""):
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
         print("DATABASE_URL not set, skipping Neon DB insert.")
@@ -61,8 +61,8 @@ def save_to_leaderboard(name: str, ats_score: int, pdf_url: str):
         cur = conn.cursor()
         record_id = str(uuid.uuid4())
         cur.execute(
-            "INSERT INTO leaderboard (id, name, ats_score, pdf_url) VALUES (%s, %s, %s, %s)",
-            (record_id, name, ats_score, pdf_url)
+            "INSERT INTO leaderboard (id, name, ats_score, pdf_url, cloudinary_url) VALUES (%s, %s, %s, %s, %s)",
+            (record_id, name, ats_score, pdf_url, cloudinary_url or None)
         )
         conn.commit()
         cur.close()
@@ -136,12 +136,13 @@ async def process_resume(
         
         pdf_url = f"/static/resumes/{local_filename}"
 
+        cloudinary_url = ""
         try:
-            upload_to_cloudinary(local_path)
+            cloudinary_url = upload_to_cloudinary(local_path) or ""
         except Exception as e:
             print(f"Cloudinary fallback upload failed: {e}")
 
-        save_to_leaderboard(db_name, score, pdf_url)
+        save_to_leaderboard(db_name, score, pdf_url, cloudinary_url)
 
         metadata = {
             "success": True,
@@ -205,15 +206,16 @@ RESUME TEXT:
     
     pdf_url = f"/static/resumes/{local_filename}"
 
+    cloudinary_url = ""
     try:
-        upload_to_cloudinary(local_path)
+        cloudinary_url = upload_to_cloudinary(local_path) or ""
     except Exception as e:
         print(f"Cloudinary fallback upload failed: {e}")
-        
+
     os.unlink(temp_file_path)
 
     db_name = candidate_name.strip() if (candidate_name and candidate_name.strip()) else (file.filename.split('.')[0] if file.filename else "Unknown")
-    save_to_leaderboard(db_name, score, pdf_url)
+    save_to_leaderboard(db_name, score, pdf_url, cloudinary_url)
 
     return {
         "success": True,
@@ -231,8 +233,8 @@ async def get_leaderboard():
         conn = psycopg2.connect(db_url)
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
-            "SELECT id, name, ats_score, pdf_url FROM ("
-            "  SELECT DISTINCT ON (LOWER(name)) id, name, ats_score, pdf_url "
+            "SELECT id, name, ats_score, pdf_url, cloudinary_url FROM ("
+            "  SELECT DISTINCT ON (LOWER(name)) id, name, ats_score, pdf_url, cloudinary_url "
             "  FROM leaderboard "
             "  ORDER BY LOWER(name), ats_score DESC"
             ") subquery ORDER BY ats_score DESC LIMIT 50"
@@ -240,7 +242,7 @@ async def get_leaderboard():
         rows = cur.fetchall()
         cur.close()
         conn.close()
-        return {"success": True, "leaderboard": rows}
+        return {"success": True, "leaderboard": [dict(r) for r in rows]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch leaderboard: {str(e)}")
 
